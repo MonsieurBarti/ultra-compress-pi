@@ -18,7 +18,10 @@ const OUTER_FENCE_RE = /^\s*```(?:\w+)?\n([\s\S]*?)\n```\s*$/;
 
 function stripOuterFence(s: string): string {
 	const m = s.match(OUTER_FENCE_RE);
-	return m ? m[1]! : s;
+	if (!m) return s;
+	// m[1] is guaranteed to exist since OUTER_FENCE_RE has one capture group
+	// biome-ignore lint/style/noNonNullAssertion: capture group always exists
+	return m[1]!;
 }
 
 function buildInitialPrompt(maskedPrePass: string, level: ActiveLevel, mode: Mode): string {
