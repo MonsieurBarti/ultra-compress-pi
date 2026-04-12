@@ -1,5 +1,4 @@
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { backupPathFor } from "../services/backup-path";
+import { restoreFromBackup } from "../services/file-ops";
 import { PathEscapeError, SymlinkRejectedError, safeResolveInCwd } from "../services/path-guard";
 import type { CommandDefinition } from "./types";
 
@@ -23,14 +22,15 @@ export function createUcRevertCommand(): CommandDefinition {
 				}
 				throw e;
 			}
-			const backup = backupPathFor(abs);
-			if (!existsSync(backup)) {
-				ctx.ui.notify(`ultra-compress: no backup at ${backup}`, "error");
-				return;
+			try {
+				restoreFromBackup(abs);
+			} catch (e) {
+				if ((e as Error).name === "NoBackupError") {
+					ctx.ui.notify((e as Error).message, "error");
+					return;
+				}
+				throw e;
 			}
-			const content = readFileSync(backup, "utf8");
-			writeFileSync(abs, content, "utf8");
-			unlinkSync(backup);
 			ctx.ui.notify(`ultra-compress: restored ${abs} from backup.`, "info");
 		},
 	};

@@ -1,8 +1,13 @@
-import { existsSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { basename, join } from "node:path";
-import { backupPathFor } from "../services/backup-path";
-import { type LLMCall, compressTextPipeline } from "../services/compress-pipeline";
-import { PathEscapeError, SymlinkRejectedError, safeResolveInCwd } from "../services/path-guard";
+import { compressTextPipeline } from "../services/compress-pipeline";
+import {
+	extOf,
+	isSupportedExtension,
+	resolveForCompression,
+	writeWithBackup,
+} from "../services/file-ops";
+import { PathEscapeError, SymlinkRejectedError } from "../services/path-guard";
 import { appendCompressedFile } from "../services/state-store";
 import {
 	ACTIVE_LEVELS,
@@ -14,11 +19,8 @@ import {
 } from "../types";
 import type { AutocompleteItem, CommandContext, CommandDefinition } from "./types";
 
-const MAX_BYTES = 500 * 1024;
-const SUPPORTED_EXT = new Set([".md", ".txt", ".rst", ".markdown"]);
-
 export interface UcFileDeps {
-	llm: (ctx: CommandContext) => LLMCall;
+	llm: (ctx: CommandContext) => import("../services/compress-pipeline").LLMCall;
 	cwd?: string;
 }
 
@@ -35,11 +37,6 @@ function parseArgs(args: string): { path: string; level: string; yes: boolean } 
 		level: filtered[1] ?? "",
 		yes,
 	};
-}
-
-function extOf(path: string): string {
-	const i = path.lastIndexOf(".");
-	return i >= 0 ? path.slice(i).toLowerCase() : "";
 }
 
 export function createUcFileCommand(deps: UcFileDeps): CommandDefinition {
@@ -60,7 +57,7 @@ export function createUcFileCommand(deps: UcFileDeps): CommandDefinition {
 				const cwd = deps.cwd ?? process.cwd();
 				const entries = readdirSync(cwd, { withFileTypes: true });
 				const files = entries
-					.filter((e) => e.isFile() && SUPPORTED_EXT.has(extOf(e.name)))
+					.filter((e) => e.isFile() && isSupportedExtension(extOf(e.name)))
 					.map((e) => join(cwd, e.name))
 					.filter((p) => p.startsWith(join(cwd, parts[0] ?? "")));
 				return files.length > 0 ? files.map((f) => ({ value: f, label: basename(f) })) : null;
@@ -77,45 +74,24 @@ export function createUcFileCommand(deps: UcFileDeps): CommandDefinition {
 			}
 
 			let abs: string;
+			let backupPath: string;
+			let input: string;
 			try {
-				abs = safeResolveInCwd(path, ctx.cwd);
+				({ abs, backupPath, content: input } = resolveForCompression(path, ctx.cwd));
 			} catch (e) {
-				if (e instanceof PathEscapeError || e instanceof SymlinkRejectedError) {
+				if (
+					e instanceof PathEscapeError ||
+					e instanceof SymlinkRejectedError ||
+					e instanceof UnsupportedFileTypeError ||
+					e instanceof BackupExistsError ||
+					e instanceof FileTooLargeError
+				) {
 					ctx.ui.notify((e as Error).message, "error");
 					return;
 				}
 				throw e;
 			}
-			if (!existsSync(abs)) {
-				ctx.ui.notify(`ultra-compress: file not found "${abs}"`, "error");
-				return;
-			}
 
-			const ext = extOf(abs);
-			if (!SUPPORTED_EXT.has(ext)) {
-				ctx.ui.notify(
-					new UnsupportedFileTypeError(
-						abs,
-						`extension ${ext} not in ${[...SUPPORTED_EXT].join(",")}`,
-					).message,
-					"error",
-				);
-				return;
-			}
-
-			const backupPath = backupPathFor(abs);
-			if (existsSync(backupPath)) {
-				ctx.ui.notify(new BackupExistsError(backupPath).message, "error");
-				return;
-			}
-
-			const buf = readFileSync(abs);
-			if (buf.byteLength > MAX_BYTES) {
-				ctx.ui.notify(new FileTooLargeError(abs, buf.byteLength).message, "error");
-				return;
-			}
-
-			const input = buf.toString("utf8");
 			const llm = deps.llm(ctx);
 
 			let result: Awaited<ReturnType<typeof compressTextPipeline>>;
@@ -143,8 +119,7 @@ export function createUcFileCommand(deps: UcFileDeps): CommandDefinition {
 				return;
 			}
 
-			renameSync(abs, backupPath);
-			writeFileSync(abs, result.compressed, "utf8");
+			writeWithBackup(abs, backupPath, result.compressed);
 			await appendCompressedFile(
 				{
 					path: abs,
