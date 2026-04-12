@@ -9,11 +9,9 @@ import {
 	createUcStatusCommand,
 } from "./commands";
 import { createAgentEndHook, createBeforeAgentStartHook, createSessionStartHook } from "./hooks";
-import { compressTextPipeline } from "./services/compress-pipeline";
 import { applyLevelLexical } from "./services/level-rules";
-import { type LLMFactoryContext, makeLLM } from "./services/llm-factory";
 import { loadState } from "./services/state-store";
-import type { ActiveLevel, CompressOptions, CompressResult, Level } from "./types";
+import type { ActiveLevel, Level } from "./types";
 
 // Structural PI API (inlined to avoid requiring peer deps at test time).
 
@@ -28,13 +26,12 @@ interface PiRegisteredCommand {
 interface PiCommandContext {
 	ui?: { notify?: (message: string, level?: string) => void };
 	cwd?: string;
-	modelRegistry?: LLMFactoryContext["modelRegistry"];
-	signal?: AbortSignal;
 }
 
 export interface PiExtensionApi {
 	on(event: string, handler: PiEventHandler): void;
 	registerCommand(name: string, config: PiRegisteredCommand): void;
+	sendUserMessage(content: string, options?: { deliverAs?: "steer" | "followUp" }): void;
 	cwd?: string;
 }
 
@@ -66,13 +63,7 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 		"uc-file",
 		wrapCommand(
 			createUcFileCommand({
-				llm: (ctx) => {
-					const piCtx = ctx as PiCommandContext;
-					const factoryCtx: LLMFactoryContext = {};
-					if (piCtx.modelRegistry !== undefined) factoryCtx.modelRegistry = piCtx.modelRegistry;
-					if (piCtx.signal !== undefined) factoryCtx.signal = piCtx.signal;
-					return makeLLM(factoryCtx);
-				},
+				sendUserMessage: (prompt: string) => pi.sendUserMessage(prompt),
 			}),
 		),
 	);
@@ -91,12 +82,12 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	});
 
 	pi.on("before_agent_start", async (event, ctx) => {
-		const e = event as { prompt?: string; systemPrompt?: string };
+		const e = event as { prompt?: unknown; systemPrompt?: string };
 		const c = ctx as { cwd?: string };
-		if (typeof e?.prompt !== "string" || typeof e?.systemPrompt !== "string") return;
-		if (typeof c?.cwd !== "string") return;
+		if (typeof e?.systemPrompt !== "string") return undefined;
+		if (typeof c?.cwd !== "string") return undefined;
 		return await beforeAgentStart(
-			{ prompt: e.prompt, systemPrompt: e.systemPrompt },
+			{ prompt: typeof e.prompt === "string" ? e.prompt : "", systemPrompt: e.systemPrompt },
 			{ cwd: c.cwd },
 		);
 	});
@@ -110,7 +101,7 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 
 	const extensionDir = dirname(fileURLToPath(import.meta.url));
 	const skillsDir = join(extensionDir, "skills");
-	pi.on("resources_discover", () => ({ skills: [skillsDir] }));
+	pi.on("resources_discover", () => ({ skillPaths: [skillsDir] }));
 }
 
 // Named library exports for other PI extensions — public surface only (spec §9).
@@ -122,35 +113,12 @@ export type {
 	Level,
 	Mode,
 } from "./types";
-export { PIContextRequiredError } from "./types";
 export { buildLevelPromptFragment } from "./services/level-prompts";
 export { validateCompression } from "./services/validator";
 
 export async function getActiveLevel(projectRoot?: string): Promise<Level> {
 	const state = await loadState(projectRoot);
 	return state.level;
-}
-
-export type CtxLike = LLMFactoryContext & { cwd?: string };
-
-export async function compressText(
-	input: string,
-	level: ActiveLevel,
-	ctx: CtxLike,
-	opts?: CompressOptions,
-): Promise<CompressResult> {
-	const factoryCtx: LLMFactoryContext = {};
-	if (ctx.modelRegistry !== undefined) factoryCtx.modelRegistry = ctx.modelRegistry;
-	if (ctx.signal !== undefined) factoryCtx.signal = ctx.signal;
-	const llm = makeLLM(factoryCtx);
-	return compressTextPipeline({
-		input,
-		level,
-		mode: "file",
-		llm,
-		...(opts?.maxRepairRetries !== undefined ? { maxRepairRetries: opts.maxRepairRetries } : {}),
-		...(ctx.signal ? { signal: ctx.signal } : {}),
-	});
 }
 
 export function compressTextLexical(

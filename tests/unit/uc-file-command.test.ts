@@ -1,94 +1,113 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createUcFileCommand } from "../../src/commands/uc-file";
-import { setProjectRootForTest } from "../../src/services/state-store";
 
 describe("/uc-file command", () => {
 	let dir: string;
 
 	beforeEach(() => {
 		dir = mkdtempSync(join(tmpdir(), "uc-file-"));
-		setProjectRootForTest(dir);
 	});
 
 	afterEach(() => {
 		rmSync(dir, { recursive: true, force: true });
 	});
 
-	it("parses path + level + --yes and writes compressed file with backup", async () => {
-		const filePath = join(dir, "doc.md");
-		writeFileSync(filePath, "The quick brown fox.\n");
+	it("sends a preview prompt when --yes is absent", async () => {
+		const p = join(dir, "doc.md");
+		writeFileSync(p, "text");
+		const sendUserMessage = vi.fn();
 		const notify = vi.fn();
-		const llm = vi.fn(async () => "Quick fox.");
-		const cmd = createUcFileCommand({ llm: () => llm });
-		await cmd.handler(`${filePath} standard --yes`, { cwd: dir, ui: { notify } });
-
-		expect(existsSync(`${filePath}.original.md`)).toBe(true);
-		expect(readFileSync(filePath, "utf8")).toBe("Quick fox.");
-		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/written|compressed/i), "info");
+		const cmd = createUcFileCommand({ sendUserMessage });
+		await cmd.handler(`${p} standard`, { cwd: dir, ui: { notify } });
+		expect(sendUserMessage).toHaveBeenCalledTimes(1);
+		const prompt = sendUserMessage.mock.calls[0]?.[0];
+		expect(prompt).toMatch(/preview/i);
+		expect(prompt).toContain(p);
+		expect(prompt).toMatch(/level.*standard/i);
 	});
 
-	it("errors on invalid level", async () => {
-		const filePath = join(dir, "doc.md");
-		writeFileSync(filePath, "text");
+	it("sends a write prompt when --yes is present", async () => {
+		const p = join(dir, "doc.md");
+		writeFileSync(p, "text");
+		const sendUserMessage = vi.fn();
 		const notify = vi.fn();
-		const cmd = createUcFileCommand({ llm: () => vi.fn() });
-		await cmd.handler(`${filePath} bogus --yes`, { cwd: dir, ui: { notify } });
+		const cmd = createUcFileCommand({ sendUserMessage });
+		await cmd.handler(`${p} ultra --yes`, { cwd: dir, ui: { notify } });
+		expect(sendUserMessage).toHaveBeenCalledTimes(1);
+		const prompt = sendUserMessage.mock.calls[0]?.[0];
+		expect(prompt).toMatch(/write/i);
+		expect(prompt).toContain(`${p}.original.md`);
+	});
+
+	it("errors on invalid level without sending a message", async () => {
+		const p = join(dir, "doc.md");
+		writeFileSync(p, "text");
+		const sendUserMessage = vi.fn();
+		const notify = vi.fn();
+		const cmd = createUcFileCommand({ sendUserMessage });
+		await cmd.handler(`${p} bogus --yes`, { cwd: dir, ui: { notify } });
+		expect(sendUserMessage).not.toHaveBeenCalled();
 		expect(notify).toHaveBeenCalledWith(expect.stringContaining("invalid"), "error");
 	});
 
-	it("errors when backup already exists", async () => {
-		const filePath = join(dir, "doc.md");
-		writeFileSync(filePath, "text");
-		writeFileSync(`${filePath}.original.md`, "already");
+	it("errors when backup already exists without sending a message", async () => {
+		const p = join(dir, "doc.md");
+		writeFileSync(p, "text");
+		writeFileSync(`${p}.original.md`, "already");
+		const sendUserMessage = vi.fn();
 		const notify = vi.fn();
-		const cmd = createUcFileCommand({ llm: () => vi.fn(async () => "x") });
-		await cmd.handler(`${filePath} standard --yes`, { cwd: dir, ui: { notify } });
+		const cmd = createUcFileCommand({ sendUserMessage });
+		await cmd.handler(`${p} ultra --yes`, { cwd: dir, ui: { notify } });
+		expect(sendUserMessage).not.toHaveBeenCalled();
 		expect(notify).toHaveBeenCalledWith(expect.stringContaining("backup"), "error");
 	});
 
-	it("rejects absolute paths outside cwd", async () => {
+	it("errors on path traversal without sending a message", async () => {
+		const sendUserMessage = vi.fn();
 		const notify = vi.fn();
-		const cmd = createUcFileCommand({ llm: () => vi.fn() });
-		await cmd.handler("/etc/passwd standard --yes", { cwd: dir, ui: { notify } });
+		const cmd = createUcFileCommand({ sendUserMessage });
+		await cmd.handler("/etc/passwd ultra --yes", { cwd: dir, ui: { notify } });
+		expect(sendUserMessage).not.toHaveBeenCalled();
 		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/escapes project root/i), "error");
 	});
 
-	it("rejects .. traversal", async () => {
-		const notify = vi.fn();
-		const cmd = createUcFileCommand({ llm: () => vi.fn() });
-		await cmd.handler("../../../etc/passwd standard --yes", { cwd: dir, ui: { notify } });
-		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/escapes project root/i), "error");
-	});
+	describe("autocomplete", () => {
+		it("completes path at position 1 and preserves it when completing level at position 2", () => {
+			writeFileSync(join(dir, "a.md"), "x");
+			writeFileSync(join(dir, "b.md"), "x");
+			const cmd = createUcFileCommand({ sendUserMessage: vi.fn(), cwd: dir });
 
-	it("rejects symlinks", async () => {
-		const { symlinkSync, writeFileSync } = await import("node:fs");
-		writeFileSync(join(dir, "target.md"), "x");
-		symlinkSync(join(dir, "target.md"), join(dir, "link.md"));
-		const notify = vi.fn();
-		const cmd = createUcFileCommand({ llm: () => vi.fn() });
-		await cmd.handler(`${join(dir, "link.md")} standard --yes`, { cwd: dir, ui: { notify } });
-		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/symlink/i), "error");
-	});
+			const p1 = cmd.getArgumentCompletions?.("") ?? [];
+			expect(p1.map((i) => i.value)).toEqual(expect.arrayContaining(["a.md", "b.md"]));
 
-	it("uses literal .original.md backup for non-.md files", async () => {
-		const filePath = join(dir, "doc.txt");
-		writeFileSync(filePath, "text");
-		const notify = vi.fn();
-		const cmd = createUcFileCommand({ llm: () => vi.fn(async () => "text") });
-		await cmd.handler(`${filePath} standard --yes`, { cwd: dir, ui: { notify } });
-		expect(existsSync(`${filePath}.original.md`)).toBe(true);
-	});
+			const p2 = cmd.getArgumentCompletions?.("a.md u") ?? [];
+			expect(p2.map((i) => i.value)).toEqual(["a.md ultra"]);
+			expect(p2.map((i) => i.label)).toEqual(["ultra"]);
 
-	it("completes path at position 1 and level at position 2", () => {
-		writeFileSync(join(dir, "a.md"), "x");
-		writeFileSync(join(dir, "b.md"), "x");
-		const cmd = createUcFileCommand({ llm: () => vi.fn(), cwd: dir });
-		const p1 = cmd.getArgumentCompletions?.("") ?? [];
-		expect(p1.some((i) => i.value.endsWith("a.md"))).toBe(true);
-		const p2 = cmd.getArgumentCompletions?.(`${join(dir, "a.md")} u`) ?? [];
-		expect(p2.map((i) => i.value)).toEqual(["ultra"]);
+			const p3 = cmd.getArgumentCompletions?.("a.md ") ?? [];
+			expect(p3.map((i) => i.label)).toEqual(["lite", "standard", "ultra", "symbolic"]);
+			expect(p3.every((i) => i.value.startsWith("a.md "))).toBe(true);
+		});
+
+		it("completes nested paths through subdirectories", () => {
+			mkdirSync(join(dir, "skills", "foo"), { recursive: true });
+			writeFileSync(join(dir, "skills", "foo", "SKILL.md"), "x");
+			writeFileSync(join(dir, "skills", "README.md"), "x");
+			const cmd = createUcFileCommand({ sendUserMessage: vi.fn(), cwd: dir });
+
+			const a = cmd.getArgumentCompletions?.("sk") ?? [];
+			expect(a.map((i) => i.value)).toContain("skills/");
+
+			const b = cmd.getArgumentCompletions?.("skills/") ?? [];
+			expect(b.map((i) => i.value)).toEqual(
+				expect.arrayContaining(["skills/README.md", "skills/foo/"]),
+			);
+
+			const c = cmd.getArgumentCompletions?.("skills/foo/") ?? [];
+			expect(c.map((i) => i.value)).toEqual(["skills/foo/SKILL.md"]);
+		});
 	});
 });

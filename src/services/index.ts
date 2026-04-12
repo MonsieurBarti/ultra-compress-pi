@@ -1,5 +1,3 @@
-export { compressTextPipeline } from "./compress-pipeline";
-export type { LLMCall, CompressPipelineInput } from "./compress-pipeline";
 export { buildLevelPromptFragment } from "./level-prompts";
 export { applyLevelLexical, maskProtectedZones, unmaskProtectedZones } from "./level-rules";
 export { validateCompression } from "./validator";

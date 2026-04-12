@@ -1,7 +1,6 @@
-export interface AutocompleteItem {
-	value: string;
-	label: string;
-}
+import type { AutocompleteItem } from "@mariozechner/pi-tui";
+
+export type { AutocompleteItem }; // re-export so downstream imports from this module still work
 
 export interface CommandUI {
 	notify(message: string, level?: "info" | "warning" | "error"): void;

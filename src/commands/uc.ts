@@ -20,6 +20,10 @@ export function createUcCommand(): CommandDefinition {
 		},
 		async handler(args, ctx) {
 			const level = args.trim();
+			if (!level) {
+				ctx.ui.notify("ultra-compress: usage: /uc <off|lite|standard|ultra|symbolic>", "error");
+				return;
+			}
 			if (!isLevel(level)) {
 				ctx.ui.notify(new InvalidLevelError(level).message, "error");
 				return;
