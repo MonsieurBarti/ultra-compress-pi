@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.2...ultra-compress-pi-v0.1.3) (2026-04-12)
+
+
+### Bug Fixes
+
+* use explicit .js suffixes on relative imports (esm compliance) ([a83548b](https://github.com/MonsieurBarti/ultra-compress-pi/commit/a83548b0272883267cbeafb461b878ac27b03151))
+* use explicit .js suffixes on relative imports (esm compliance) ([deb0bab](https://github.com/MonsieurBarti/ultra-compress-pi/commit/deb0bab2398d5245242e0c922180a8c75e532e19))
+
 ## [0.1.3] - 2026-04-12
 
 ### Fixed
