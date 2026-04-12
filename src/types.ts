@@ -38,8 +38,6 @@ export interface CompressResult {
 }
 
 export interface CompressOptions {
-	preserve?: RegExp[];
-	temperature?: number;
 	maxRepairRetries?: number;
 }
 
