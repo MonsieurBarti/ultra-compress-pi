@@ -7,7 +7,7 @@ import {
 	resetSessionStats,
 	saveLevel,
 	setProjectRootForTest,
-} from "../../src/services/state-store";
+} from "../../src/services/state-store.js";
 
 describe("state-store", () => {
 	let dir: string;

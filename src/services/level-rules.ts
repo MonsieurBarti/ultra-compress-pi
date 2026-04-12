@@ -1,4 +1,4 @@
-import type { ActiveLevel } from "../types";
+import type { ActiveLevel } from "../types.js";
 
 export interface MaskResult {
 	masked: string;

@@ -1,4 +1,4 @@
-import type { ValidatorReport } from "../types";
+import type { ValidatorReport } from "../types.js";
 
 const FENCED_RE = /```[\s\S]*?```/g;
 const URL_RE = /\bhttps?:\/\/\S+/g;

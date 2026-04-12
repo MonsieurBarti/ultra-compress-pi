@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createUcFileCommand } from "../../src/commands/uc-file";
+import { createUcFileCommand } from "../../src/commands/uc-file.js";
 
 describe("/uc-file command", () => {
 	let dir: string;

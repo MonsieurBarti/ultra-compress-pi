@@ -1,4 +1,4 @@
-import { loadState } from "../services/state-store";
+import { loadState } from "../services/state-store.js";
 
 export interface BeforeAgentStartEvent {
 	prompt: string;

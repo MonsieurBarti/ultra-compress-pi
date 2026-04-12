@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createBeforeAgentStartHook } from "../../src/hooks/before-agent-start";
-import { saveLevel, setProjectRootForTest } from "../../src/services/state-store";
+import { createBeforeAgentStartHook } from "../../src/hooks/before-agent-start.js";
+import { saveLevel, setProjectRootForTest } from "../../src/services/state-store.js";
 
 describe("before_agent_start hook", () => {
 	let dir: string;

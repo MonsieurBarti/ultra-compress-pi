@@ -2,12 +2,12 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createUcStatusCommand } from "../../src/commands/uc-status";
+import { createUcStatusCommand } from "../../src/commands/uc-status.js";
 import {
 	appendCompressedFile,
 	saveLevel,
 	setProjectRootForTest,
-} from "../../src/services/state-store";
+} from "../../src/services/state-store.js";
 
 describe("/uc-status command", () => {
 	let dir: string;

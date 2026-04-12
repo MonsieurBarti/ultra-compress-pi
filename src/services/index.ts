@@ -1,7 +1,7 @@
-export { buildLevelPromptFragment } from "./level-prompts";
-export { applyLevelLexical, maskProtectedZones, unmaskProtectedZones } from "./level-rules";
-export { validateCompression } from "./validator";
-export { levelFactor, estimateCharsSaved } from "./stats";
+export { buildLevelPromptFragment } from "./level-prompts.js";
+export { applyLevelLexical, maskProtectedZones, unmaskProtectedZones } from "./level-rules.js";
+export { validateCompression } from "./validator.js";
+export { levelFactor, estimateCharsSaved } from "./stats.js";
 export {
 	loadState,
 	saveLevel,
@@ -10,4 +10,4 @@ export {
 	appendCompressedFile,
 	incrementAutoClarity,
 	addCharsSaved,
-} from "./state-store";
+} from "./state-store.js";

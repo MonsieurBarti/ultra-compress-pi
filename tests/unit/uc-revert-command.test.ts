@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createUcRevertCommand } from "../../src/commands/uc-revert";
+import { createUcRevertCommand } from "../../src/commands/uc-revert.js";
 
 describe("/uc-revert command", () => {
 	let dir: string;

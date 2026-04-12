@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLevelPromptFragment } from "../../src/services/level-prompts";
+import { buildLevelPromptFragment } from "../../src/services/level-prompts.js";
 
 describe("buildLevelPromptFragment", () => {
 	it("produces distinct fragments per level for runtime mode", () => {

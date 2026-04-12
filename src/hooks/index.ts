@@ -1,16 +1,16 @@
-export { createSessionStartHook } from "./session-start";
+export { createSessionStartHook } from "./session-start.js";
 export type {
 	SessionStartEvent,
 	SessionStartContext,
 	NotifyFn,
 	SessionStartHook,
-} from "./session-start";
-export { createBeforeAgentStartHook } from "./before-agent-start";
+} from "./session-start.js";
+export { createBeforeAgentStartHook } from "./before-agent-start.js";
 export type {
 	BeforeAgentStartEvent,
 	BeforeAgentStartContext,
 	BeforeAgentStartResult,
 	BeforeAgentStartHook,
-} from "./before-agent-start";
-export { createAgentEndHook } from "./agent-end";
-export type { AgentEndEvent, AgentEndContext, AgentEndHook } from "./agent-end";
+} from "./before-agent-start.js";
+export { createAgentEndHook } from "./agent-end.js";
+export type { AgentEndEvent, AgentEndContext, AgentEndHook } from "./agent-end.js";

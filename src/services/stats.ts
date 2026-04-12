@@ -1,4 +1,4 @@
-import type { Level } from "../types";
+import type { Level } from "../types.js";
 
 const FACTORS: Record<Level, number> = {
 	off: 1,
