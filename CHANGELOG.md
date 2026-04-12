@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.2](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.1...ultra-compress-pi-v0.1.2) (2026-04-12)
+
+
+### Features
+
+* **commands:** add usage hint for /uc and path autocomplete for /uc-revert ([cd36b5c](https://github.com/MonsieurBarti/ultra-compress-pi/commit/cd36b5c35d4f96cae97f6566581d1e91f0dd32c2))
+
+
+### Bug Fixes
+
+* align with PI framework API per docs audit ([ba5de9a](https://github.com/MonsieurBarti/ultra-compress-pi/commit/ba5de9a15076f8227897e3b9a53ca1a87e71f88f))
+* **hooks:** handle image-only inputs in before_agent_start guard ([12f5a47](https://github.com/MonsieurBarti/ultra-compress-pi/commit/12f5a472ac6bdb6dcfdea07f6e7f6a8352aa0c69))
+* **hooks:** use skillpaths key in resources_discover (not skills) ([9715060](https://github.com/MonsieurBarti/ultra-compress-pi/commit/9715060fa6fc2226240ecc73d9490b90cebaa588))
+* **llm:** check auth.ok from getapikeyandeaders and surface llmautherror ([60a43f4](https://github.com/MonsieurBarti/ultra-compress-pi/commit/60a43f47e1fa429c7fbc8dc95859169bec78aad7))
+* **llm:** use ctx.model instead of undocumented modelregistry.find ([ab60913](https://github.com/MonsieurBarti/ultra-compress-pi/commit/ab60913ae49cc9f3d3f32b7e18963e52d117348e))
+
 ## [0.1.1](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.0...ultra-compress-pi-v0.1.1) (2026-04-12)
 
 
