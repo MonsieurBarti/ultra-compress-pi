@@ -47,20 +47,6 @@ export interface ValidatorReport {
 	errors: string[];
 }
 
-export class PIContextRequiredError extends Error {
-	constructor() {
-		super("ultra-compress: PI ExtensionContext is required for LLM-backed operations");
-		this.name = "PIContextRequiredError";
-	}
-}
-
-export class LLMAuthError extends Error {
-	constructor(detail: string) {
-		super(`ultra-compress: model auth failed — ${detail}`);
-		this.name = "LLMAuthError";
-	}
-}
-
 export class InvalidLevelError extends Error {
 	constructor(given: string) {
 		super(
@@ -88,14 +74,5 @@ export class UnsupportedFileTypeError extends Error {
 	constructor(path: string, reason: string) {
 		super(`ultra-compress: refusing to compress "${path}": ${reason}`);
 		this.name = "UnsupportedFileTypeError";
-	}
-}
-
-export class ValidatorFailedError extends Error {
-	readonly errors: string[];
-	constructor(errors: string[]) {
-		super(`ultra-compress: validator failed after repair retries — ${errors.join("; ")}`);
-		this.name = "ValidatorFailedError";
-		this.errors = errors;
 	}
 }
