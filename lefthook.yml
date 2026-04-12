@@ -11,4 +11,4 @@ pre-commit:
     typecheck:
       run: bun run typecheck
     test:
-      run: bun run test
+      run: bun run test -- --passWithNoTests
