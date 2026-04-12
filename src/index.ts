@@ -9,16 +9,11 @@ import {
 	createUcStatusCommand,
 } from "./commands";
 import { createBeforeAgentStartHook, createSessionStartHook } from "./hooks";
-import { type LLMCall, compressTextPipeline } from "./services/compress-pipeline";
+import { compressTextPipeline } from "./services/compress-pipeline";
 import { applyLevelLexical } from "./services/level-rules";
+import { type LLMFactoryContext, makeLLM } from "./services/llm-factory";
 import { loadState } from "./services/state-store";
-import {
-	type ActiveLevel,
-	type CompressOptions,
-	type CompressResult,
-	type Level,
-	PIContextRequiredError,
-} from "./types";
+import type { ActiveLevel, CompressOptions, CompressResult, Level } from "./types";
 
 // Structural PI API (inlined to avoid requiring peer deps at test time).
 
@@ -33,13 +28,8 @@ interface PiRegisteredCommand {
 interface PiCommandContext {
 	ui?: { notify?: (message: string, level?: string) => void };
 	cwd?: string;
-	modelRegistry?: PiModelRegistry;
+	modelRegistry?: LLMFactoryContext["modelRegistry"];
 	signal?: AbortSignal;
-}
-
-interface PiModelRegistry {
-	find(provider: string, model: string): unknown;
-	getApiKeyAndHeaders(model: unknown): Promise<{ apiKey: string; headers: Record<string, string> }>;
 }
 
 export interface PiExtensionApi {
@@ -66,36 +56,6 @@ function wrapCommand(def: CommandDefinition): PiRegisteredCommand {
 	};
 }
 
-// Build a live LLMCall bound to the PI session's default model.
-// If the model registry is not available on the context, throw PIContextRequiredError.
-function makeLLM(piCtx: PiCommandContext): LLMCall {
-	return async (prompt, signal) => {
-		if (!piCtx.modelRegistry) throw new PIContextRequiredError();
-		const mod = await import("@mariozechner/pi-ai");
-		const complete = (
-			mod as {
-				complete: (...a: unknown[]) => Promise<{ content: Array<{ type: string; text?: string }> }>;
-			}
-		).complete;
-		const model = piCtx.modelRegistry.find("", "");
-		const auth = await piCtx.modelRegistry.getApiKeyAndHeaders(model);
-		const resp = await complete(
-			model,
-			{ messages: [{ role: "user", content: prompt }] },
-			{
-				apiKey: auth.apiKey,
-				headers: auth.headers,
-				maxTokens: 8192,
-				signal: signal ?? piCtx.signal,
-			},
-		);
-		return resp.content
-			.filter((c) => c.type === "text")
-			.map((c) => c.text ?? "")
-			.join("");
-	};
-}
-
 export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	const notify = (message: string, level: "info" | "warning" | "error" = "info") => {
 		process.stderr.write(`[ultra-compress] ${level}: ${message}\n`);
@@ -104,7 +64,17 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	pi.registerCommand("uc", wrapCommand(createUcCommand()));
 	pi.registerCommand(
 		"uc-file",
-		wrapCommand(createUcFileCommand({ llm: (ctx) => makeLLM(ctx as PiCommandContext) })),
+		wrapCommand(
+			createUcFileCommand({
+				llm: (ctx) => {
+					const piCtx = ctx as PiCommandContext;
+					const factoryCtx: LLMFactoryContext = {};
+					if (piCtx.modelRegistry !== undefined) factoryCtx.modelRegistry = piCtx.modelRegistry;
+					if (piCtx.signal !== undefined) factoryCtx.signal = piCtx.signal;
+					return makeLLM(factoryCtx);
+				},
+			}),
+		),
 	);
 	pi.registerCommand("uc-status", wrapCommand(createUcStatusCommand()));
 	pi.registerCommand("uc-revert", wrapCommand(createUcRevertCommand()));
@@ -162,11 +132,7 @@ export async function getActiveLevel(projectRoot?: string): Promise<Level> {
 	return state.level;
 }
 
-export interface CtxLike {
-	modelRegistry: PiModelRegistry;
-	cwd?: string;
-	signal?: AbortSignal;
-}
+export type CtxLike = LLMFactoryContext & { cwd?: string };
 
 export async function compressText(
 	input: string,
@@ -174,11 +140,10 @@ export async function compressText(
 	ctx: CtxLike,
 	opts?: CompressOptions,
 ): Promise<CompressResult> {
-	const llm = makeLLM({
-		modelRegistry: ctx.modelRegistry,
-		...(ctx.cwd !== undefined ? { cwd: ctx.cwd } : {}),
-		...(ctx.signal !== undefined ? { signal: ctx.signal } : {}),
-	});
+	const factoryCtx: LLMFactoryContext = {};
+	if (ctx.modelRegistry !== undefined) factoryCtx.modelRegistry = ctx.modelRegistry;
+	if (ctx.signal !== undefined) factoryCtx.signal = ctx.signal;
+	const llm = makeLLM(factoryCtx);
 	return compressTextPipeline({
 		input,
 		level,
