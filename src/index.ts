@@ -8,7 +8,7 @@ import {
 	createUcRevertCommand,
 	createUcStatusCommand,
 } from "./commands";
-import { createBeforeAgentStartHook, createSessionStartHook } from "./hooks";
+import { createAgentEndHook, createBeforeAgentStartHook, createSessionStartHook } from "./hooks";
 import { compressTextPipeline } from "./services/compress-pipeline";
 import { applyLevelLexical } from "./services/level-rules";
 import { type LLMFactoryContext, makeLLM } from "./services/llm-factory";
@@ -81,6 +81,7 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 
 	const sessionStart = createSessionStartHook({ notify });
 	const beforeAgentStart = createBeforeAgentStartHook();
+	const agentEnd = createAgentEndHook();
 
 	pi.on("session_start", async (event, ctx) => {
 		const e = event as { reason?: string };
@@ -98,6 +99,13 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 			{ prompt: e.prompt, systemPrompt: e.systemPrompt },
 			{ cwd: c.cwd },
 		);
+	});
+
+	pi.on("agent_end", async (event, ctx) => {
+		const c = ctx as { cwd?: string };
+		if (typeof c?.cwd !== "string") return;
+		const e = event as { content?: unknown; stopReason?: string };
+		await agentEnd(e, { cwd: c.cwd });
 	});
 
 	const extensionDir = dirname(fileURLToPath(import.meta.url));

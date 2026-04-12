@@ -12,3 +12,5 @@ export type {
 	BeforeAgentStartResult,
 	BeforeAgentStartHook,
 } from "./before-agent-start";
+export { createAgentEndHook } from "./agent-end";
+export type { AgentEndEvent, AgentEndContext, AgentEndHook } from "./agent-end";
