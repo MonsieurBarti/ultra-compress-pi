@@ -28,6 +28,7 @@ interface PiRegisteredCommand {
 interface PiCommandContext {
 	ui?: { notify?: (message: string, level?: string) => void };
 	cwd?: string;
+	model?: unknown;
 	modelRegistry?: LLMFactoryContext["modelRegistry"];
 	signal?: AbortSignal;
 }
@@ -50,6 +51,9 @@ function wrapCommand(def: CommandDefinition): PiRegisteredCommand {
 						piCtx.ui?.notify?.(message, level);
 					},
 				},
+				...(piCtx.model !== undefined ? { model: piCtx.model } : {}),
+				...(piCtx.modelRegistry !== undefined ? { modelRegistry: piCtx.modelRegistry } : {}),
+				...(piCtx.signal !== undefined ? { signal: piCtx.signal } : {}),
 			};
 			await def.handler(args, ctx);
 		},
@@ -67,10 +71,13 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 		wrapCommand(
 			createUcFileCommand({
 				llm: (ctx) => {
-					const piCtx = ctx as PiCommandContext;
-					const factoryCtx: LLMFactoryContext = {};
-					if (piCtx.modelRegistry !== undefined) factoryCtx.modelRegistry = piCtx.modelRegistry;
-					if (piCtx.signal !== undefined) factoryCtx.signal = piCtx.signal;
+					const factoryCtx: LLMFactoryContext = { model: ctx.model };
+					if (ctx.modelRegistry !== undefined) {
+						(factoryCtx as { modelRegistry: unknown }).modelRegistry = ctx.modelRegistry;
+					}
+					if (ctx.signal !== undefined) {
+						factoryCtx.signal = ctx.signal;
+					}
 					return makeLLM(factoryCtx);
 				},
 			}),
@@ -131,7 +138,12 @@ export async function getActiveLevel(projectRoot?: string): Promise<Level> {
 	return state.level;
 }
 
-export type CtxLike = LLMFactoryContext & { cwd?: string };
+export interface CtxLike {
+	model: unknown;
+	modelRegistry: unknown; // no longer optional — if the caller has no registry, they can't call compressText
+	cwd?: string;
+	signal?: AbortSignal;
+}
 
 export async function compressText(
 	input: string,
@@ -139,8 +151,10 @@ export async function compressText(
 	ctx: CtxLike,
 	opts?: CompressOptions,
 ): Promise<CompressResult> {
-	const factoryCtx: LLMFactoryContext = {};
-	if (ctx.modelRegistry !== undefined) factoryCtx.modelRegistry = ctx.modelRegistry;
+	const factoryCtx: LLMFactoryContext = { model: ctx.model };
+	if (ctx.modelRegistry !== undefined) {
+		(factoryCtx as { modelRegistry: unknown }).modelRegistry = ctx.modelRegistry;
+	}
 	if (ctx.signal !== undefined) factoryCtx.signal = ctx.signal;
 	const llm = makeLLM(factoryCtx);
 	return compressTextPipeline({

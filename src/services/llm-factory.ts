@@ -7,25 +7,28 @@ interface PiModelRegistry {
 }
 
 export interface LLMFactoryContext {
+	model: unknown; // active session model from ctx.model
 	modelRegistry?: PiModelRegistry;
 	signal?: AbortSignal;
 }
 
-// Build a live LLMCall bound to the PI session's default model. Throws
-// PIContextRequiredError when invoked outside a live PI runtime (no registry).
+// Build a live LLMCall bound to the PI session's active model (ctx.model).
+// Throws PIContextRequiredError when invoked outside a live PI runtime
+// (no registry or no model).
 export function makeLLM(piCtx: LLMFactoryContext): LLMCall {
 	return async (prompt, signal) => {
-		if (!piCtx.modelRegistry) throw new PIContextRequiredError();
+		if (!piCtx.modelRegistry || piCtx.model === undefined || piCtx.model === null) {
+			throw new PIContextRequiredError();
+		}
 		const mod = await import("@mariozechner/pi-ai");
 		const complete = (
 			mod as {
 				complete: (...a: unknown[]) => Promise<{ content: Array<{ type: string; text?: string }> }>;
 			}
 		).complete;
-		const model = piCtx.modelRegistry.find("", "");
-		const auth = await piCtx.modelRegistry.getApiKeyAndHeaders(model);
+		const auth = await piCtx.modelRegistry.getApiKeyAndHeaders(piCtx.model);
 		const resp = await complete(
-			model,
+			piCtx.model,
 			{ messages: [{ role: "user", content: prompt }] },
 			{
 				apiKey: auth.apiKey,

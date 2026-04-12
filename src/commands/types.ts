@@ -10,6 +10,9 @@ export interface CommandUI {
 export interface CommandContext {
 	cwd: string;
 	ui: CommandUI;
+	model?: unknown;
+	modelRegistry?: unknown;
+	signal?: AbortSignal;
 }
 
 export interface CommandDefinition {
