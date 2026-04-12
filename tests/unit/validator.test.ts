@@ -56,4 +56,12 @@ describe("validator", () => {
 		expect(r.ok).toBe(false);
 		expect(r.errors.some((e) => e.includes("$ARGUMENTS"))).toBe(true);
 	});
+
+	it("fails when headings are reordered", () => {
+		const src = "# A\n\n## B\n\n## C\n\ntext";
+		const out = "# A\n\n## C\n\n## B\n\ntext";
+		const r = validateCompression(src, out);
+		expect(r.ok).toBe(false);
+		expect(r.errors.some((e) => e.toLowerCase().includes("heading"))).toBe(true);
+	});
 });

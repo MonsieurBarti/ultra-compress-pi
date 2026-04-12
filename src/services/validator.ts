@@ -60,6 +60,13 @@ export function validateCompression(original: string, compressed: string): Valid
 	const headingsAfter = extractAll(HEADING_RE, compressed).map((h) => h.trim());
 	if (headingsBefore.length !== headingsAfter.length) {
 		errors.push(`heading count changed: ${headingsBefore.length} → ${headingsAfter.length}`);
+	} else {
+		for (let i = 0; i < headingsBefore.length; i++) {
+			if (headingsBefore[i] !== headingsAfter[i]) {
+				errors.push(`heading order or text changed at position ${i}`);
+				break;
+			}
+		}
 	}
 
 	const fmBefore = original.match(FRONTMATTER_RE)?.[0];
