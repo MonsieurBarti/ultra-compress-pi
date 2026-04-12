@@ -54,6 +54,13 @@ export class PIContextRequiredError extends Error {
 	}
 }
 
+export class LLMAuthError extends Error {
+	constructor(detail: string) {
+		super(`ultra-compress: model auth failed — ${detail}`);
+		this.name = "LLMAuthError";
+	}
+}
+
 export class InvalidLevelError extends Error {
 	constructor(given: string) {
 		super(

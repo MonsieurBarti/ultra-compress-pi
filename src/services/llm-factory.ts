@@ -1,9 +1,14 @@
-import { PIContextRequiredError } from "../types";
+import { LLMAuthError, PIContextRequiredError } from "../types";
 import type { LLMCall } from "./compress-pipeline";
 
 interface PiModelRegistry {
 	find(provider: string, model: string): unknown;
-	getApiKeyAndHeaders(model: unknown): Promise<{ apiKey: string; headers: Record<string, string> }>;
+	getApiKeyAndHeaders(model: unknown): Promise<{
+		ok: boolean;
+		apiKey?: string;
+		headers: Record<string, string>;
+		error?: string;
+	}>;
 }
 
 export interface LLMFactoryContext {
@@ -14,7 +19,7 @@ export interface LLMFactoryContext {
 
 // Build a live LLMCall bound to the PI session's active model (ctx.model).
 // Throws PIContextRequiredError when invoked outside a live PI runtime
-// (no registry or no model).
+// (no registry or no model). Throws LLMAuthError when auth fails.
 export function makeLLM(piCtx: LLMFactoryContext): LLMCall {
 	return async (prompt, signal) => {
 		if (!piCtx.modelRegistry || piCtx.model === undefined || piCtx.model === null) {
@@ -27,6 +32,9 @@ export function makeLLM(piCtx: LLMFactoryContext): LLMCall {
 			}
 		).complete;
 		const auth = await piCtx.modelRegistry.getApiKeyAndHeaders(piCtx.model);
+		if (!auth.ok || !auth.apiKey) {
+			throw new LLMAuthError(auth.error ?? "no API key for active model");
+		}
 		const resp = await complete(
 			piCtx.model,
 			{ messages: [{ role: "user", content: prompt }] },
