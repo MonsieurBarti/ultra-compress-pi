@@ -1,4 +1,4 @@
-import type { ActiveLevel, Mode } from "../types";
+import type { ActiveLevel, Mode } from "../types.js";
 
 const RUNTIME_BASE = `
 You are operating in ultra-compress mode. Reduce output tokens by compressing prose.

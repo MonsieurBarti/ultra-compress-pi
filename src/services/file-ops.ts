@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
-import { BackupExistsError, FileTooLargeError, UnsupportedFileTypeError } from "../types";
-import { backupPathFor } from "./backup-path";
-import { safeResolveInCwd } from "./path-guard";
+import { BackupExistsError, FileTooLargeError, UnsupportedFileTypeError } from "../types.js";
+import { backupPathFor } from "./backup-path.js";
+import { safeResolveInCwd } from "./path-guard.js";
 
 const MAX_BYTES = 500 * 1024;
 const SUPPORTED_EXT = new Set([".md", ".txt", ".rst", ".markdown"]);

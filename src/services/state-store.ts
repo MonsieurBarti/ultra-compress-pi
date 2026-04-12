@@ -1,7 +1,7 @@
 import { existsSync, lstatSync } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { Level, ProjectState, SessionStats } from "../types";
+import type { Level, ProjectState, SessionStats } from "../types.js";
 
 const STATE_FILENAME = "ultra-compress.json";
 const STATE_SUBDIR = ".pi";

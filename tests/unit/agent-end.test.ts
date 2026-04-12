@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createAgentEndHook } from "../../src/hooks/agent-end";
-import { loadState, saveLevel, setProjectRootForTest } from "../../src/services/state-store";
+import { createAgentEndHook } from "../../src/hooks/agent-end.js";
+import { loadState, saveLevel, setProjectRootForTest } from "../../src/services/state-store.js";
 
 describe("agent_end hook", () => {
 	let dir: string;

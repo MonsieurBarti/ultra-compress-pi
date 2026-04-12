@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createSessionStartHook } from "../../src/hooks/session-start";
-import { saveLevel, setProjectRootForTest } from "../../src/services/state-store";
+import { createSessionStartHook } from "../../src/hooks/session-start.js";
+import { saveLevel, setProjectRootForTest } from "../../src/services/state-store.js";
 
 describe("session_start hook", () => {
 	let dir: string;
@@ -37,7 +37,7 @@ describe("session_start hook", () => {
 		const notify = vi.fn();
 		const hook = createSessionStartHook({ notify });
 		await hook({ reason: "startup" }, { cwd: dir });
-		const { loadState } = await import("../../src/services/state-store");
+		const { loadState } = await import("../../src/services/state-store.js");
 		const state = await loadState();
 		expect(state.session.autoClarityCount).toBe(0);
 		expect(state.session.estimatedOutputCharsSaved).toBe(0);

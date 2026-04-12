@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs";
-import { backupPathFor } from "../services/backup-path";
-import { restoreFromBackup } from "../services/file-ops";
-import { completePath } from "../services/path-complete";
-import { PathEscapeError, SymlinkRejectedError, safeResolveInCwd } from "../services/path-guard";
-import type { AutocompleteItem, CommandDefinition } from "./types";
+import { backupPathFor } from "../services/backup-path.js";
+import { restoreFromBackup } from "../services/file-ops.js";
+import { completePath } from "../services/path-complete.js";
+import { PathEscapeError, SymlinkRejectedError, safeResolveInCwd } from "../services/path-guard.js";
+import type { AutocompleteItem, CommandDefinition } from "./types.js";
 
 export interface UcRevertDeps {
 	cwd?: string;

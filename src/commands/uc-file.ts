@@ -1,18 +1,18 @@
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
-import { backupPathFor } from "../services/backup-path";
-import { extOf, isSupportedExtension } from "../services/file-ops";
-import { buildLevelPromptFragment } from "../services/level-prompts";
-import { completePath } from "../services/path-complete";
-import { safeResolveInCwd } from "../services/path-guard";
+import { backupPathFor } from "../services/backup-path.js";
+import { extOf, isSupportedExtension } from "../services/file-ops.js";
+import { buildLevelPromptFragment } from "../services/level-prompts.js";
+import { completePath } from "../services/path-complete.js";
+import { safeResolveInCwd } from "../services/path-guard.js";
 import {
 	ACTIVE_LEVELS,
 	type ActiveLevel,
 	BackupExistsError,
 	InvalidLevelError,
 	UnsupportedFileTypeError,
-} from "../types";
-import type { AutocompleteItem, CommandDefinition } from "./types";
+} from "../types.js";
+import type { AutocompleteItem, CommandDefinition } from "./types.js";
 
 export interface UcFileDeps {
 	// Injects a user message into the current session, triggering the agent.

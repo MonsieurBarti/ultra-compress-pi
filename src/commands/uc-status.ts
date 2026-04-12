@@ -1,6 +1,6 @@
 import { basename } from "node:path";
-import { loadState } from "../services/state-store";
-import type { CommandDefinition } from "./types";
+import { loadState } from "../services/state-store.js";
+import type { CommandDefinition } from "./types.js";
 
 export function createUcStatusCommand(): CommandDefinition {
 	return {

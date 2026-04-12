@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3] - 2026-04-12
+
+### Fixed
+- Relative imports now include explicit `.js` suffixes so Node ESM resolves
+  the built package correctly. Previously, directory imports like
+  `from "./commands"` failed with `ERR_MODULE_NOT_FOUND` when downstream
+  projects imported this package at runtime.
+
 ## [0.1.2](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.1...ultra-compress-pi-v0.1.2) (2026-04-12)
 
 

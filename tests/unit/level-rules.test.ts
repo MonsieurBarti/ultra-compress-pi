@@ -3,7 +3,7 @@ import {
 	applyLevelLexical,
 	maskProtectedZones,
 	unmaskProtectedZones,
-} from "../../src/services/level-rules";
+} from "../../src/services/level-rules.js";
 
 describe("maskProtectedZones", () => {
 	it("masks fenced code blocks with stable tokens", () => {

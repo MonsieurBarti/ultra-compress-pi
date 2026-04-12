@@ -7,11 +7,15 @@ import {
 	createUcFileCommand,
 	createUcRevertCommand,
 	createUcStatusCommand,
-} from "./commands";
-import { createAgentEndHook, createBeforeAgentStartHook, createSessionStartHook } from "./hooks";
-import { applyLevelLexical } from "./services/level-rules";
-import { loadState } from "./services/state-store";
-import type { ActiveLevel, Level } from "./types";
+} from "./commands/index.js";
+import {
+	createAgentEndHook,
+	createBeforeAgentStartHook,
+	createSessionStartHook,
+} from "./hooks/index.js";
+import { applyLevelLexical } from "./services/level-rules.js";
+import { loadState } from "./services/state-store.js";
+import type { ActiveLevel, Level } from "./types.js";
 
 // Structural PI API (inlined to avoid requiring peer deps at test time).
 
@@ -112,9 +116,9 @@ export type {
 	CompressResult,
 	Level,
 	Mode,
-} from "./types";
-export { buildLevelPromptFragment } from "./services/level-prompts";
-export { validateCompression } from "./services/validator";
+} from "./types.js";
+export { buildLevelPromptFragment } from "./services/level-prompts.js";
+export { validateCompression } from "./services/validator.js";
 
 export async function getActiveLevel(projectRoot?: string): Promise<Level> {
 	const state = await loadState(projectRoot);

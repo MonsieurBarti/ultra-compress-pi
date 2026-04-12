@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateCharsSaved, levelFactor } from "../../src/services/stats";
+import { estimateCharsSaved, levelFactor } from "../../src/services/stats.js";
 
 describe("stats/levelFactor", () => {
 	it("returns expected ratios per level", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateCompression } from "../../src/services/validator";
+import { validateCompression } from "../../src/services/validator.js";
 
 describe("validator", () => {
 	it("reports ok for identical input", () => {

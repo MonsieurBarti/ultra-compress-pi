@@ -1,5 +1,5 @@
-import { addCharsSaved, loadState } from "../services/state-store";
-import { estimateCharsSaved } from "../services/stats";
+import { addCharsSaved, loadState } from "../services/state-store.js";
+import { estimateCharsSaved } from "../services/stats.js";
 
 export interface AgentEndEvent {
 	content?: unknown;

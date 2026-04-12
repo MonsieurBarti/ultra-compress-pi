@@ -1,6 +1,6 @@
-import { saveLevel } from "../services/state-store";
-import { ALL_LEVELS, InvalidLevelError, type Level } from "../types";
-import type { AutocompleteItem, CommandDefinition } from "./types";
+import { saveLevel } from "../services/state-store.js";
+import { ALL_LEVELS, InvalidLevelError, type Level } from "../types.js";
+import type { AutocompleteItem, CommandDefinition } from "./types.js";
 
 function isLevel(s: string): s is Level {
 	return (ALL_LEVELS as readonly string[]).includes(s);

@@ -1,4 +1,4 @@
-import { loadState, resetSessionStats } from "../services/state-store";
+import { loadState, resetSessionStats } from "../services/state-store.js";
 
 export interface SessionStartEvent {
 	reason: "startup" | "reload" | "new" | "resume" | "fork";

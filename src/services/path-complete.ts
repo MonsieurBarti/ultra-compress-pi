@@ -1,6 +1,6 @@
 import { type Dirent, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { extOf, isSupportedExtension } from "./file-ops";
+import { extOf, isSupportedExtension } from "./file-ops.js";
 
 export type CompletionFilter = (absPath: string, name: string) => boolean;
 

@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createUcCommand } from "../../src/commands/uc";
-import { loadState, setProjectRootForTest } from "../../src/services/state-store";
+import { createUcCommand } from "../../src/commands/uc.js";
+import { loadState, setProjectRootForTest } from "../../src/services/state-store.js";
 
 describe("/uc command", () => {
 	let dir: string;
