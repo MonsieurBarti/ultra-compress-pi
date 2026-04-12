@@ -36,4 +36,28 @@ describe("/uc-revert command", () => {
 		await cmd.handler(p, { cwd: dir, ui: { notify } });
 		expect(notify).toHaveBeenCalledWith(expect.stringContaining("no backup"), "error");
 	});
+
+	it("rejects absolute paths outside cwd", async () => {
+		const notify = vi.fn();
+		const cmd = createUcRevertCommand();
+		await cmd.handler("/etc/passwd", { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/escapes project root/i), "error");
+	});
+
+	it("rejects .. traversal", async () => {
+		const notify = vi.fn();
+		const cmd = createUcRevertCommand();
+		await cmd.handler("../../../etc/passwd", { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/escapes project root/i), "error");
+	});
+
+	it("rejects symlinks", async () => {
+		const { symlinkSync, writeFileSync } = await import("node:fs");
+		writeFileSync(join(dir, "target.md"), "x");
+		symlinkSync(join(dir, "target.md"), join(dir, "link.md"));
+		const notify = vi.fn();
+		const cmd = createUcRevertCommand();
+		await cmd.handler(join(dir, "link.md"), { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/symlink/i), "error");
+	});
 });

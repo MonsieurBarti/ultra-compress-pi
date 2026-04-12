@@ -49,6 +49,39 @@ describe("/uc-file command", () => {
 		expect(notify).toHaveBeenCalledWith(expect.stringContaining("backup"), "error");
 	});
 
+	it("rejects absolute paths outside cwd", async () => {
+		const notify = vi.fn();
+		const cmd = createUcFileCommand({ llm: () => vi.fn() });
+		await cmd.handler("/etc/passwd standard --yes", { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/escapes project root/i), "error");
+	});
+
+	it("rejects .. traversal", async () => {
+		const notify = vi.fn();
+		const cmd = createUcFileCommand({ llm: () => vi.fn() });
+		await cmd.handler("../../../etc/passwd standard --yes", { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/escapes project root/i), "error");
+	});
+
+	it("rejects symlinks", async () => {
+		const { symlinkSync, writeFileSync } = await import("node:fs");
+		writeFileSync(join(dir, "target.md"), "x");
+		symlinkSync(join(dir, "target.md"), join(dir, "link.md"));
+		const notify = vi.fn();
+		const cmd = createUcFileCommand({ llm: () => vi.fn() });
+		await cmd.handler(`${join(dir, "link.md")} standard --yes`, { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/symlink/i), "error");
+	});
+
+	it("uses literal .original.md backup for non-.md files", async () => {
+		const filePath = join(dir, "doc.txt");
+		writeFileSync(filePath, "text");
+		const notify = vi.fn();
+		const cmd = createUcFileCommand({ llm: () => vi.fn(async () => "text") });
+		await cmd.handler(`${filePath} standard --yes`, { cwd: dir, ui: { notify } });
+		expect(existsSync(`${filePath}.original.md`)).toBe(true);
+	});
+
 	it("completes path at position 1 and level at position 2", () => {
 		writeFileSync(join(dir, "a.md"), "x");
 		writeFileSync(join(dir, "b.md"), "x");

@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, join } from "node:path";
+import { backupPathFor } from "../services/backup-path";
 import { type LLMCall, compressTextPipeline } from "../services/compress-pipeline";
+import { PathEscapeError, SymlinkRejectedError, safeResolveInCwd } from "../services/path-guard";
 import { appendCompressedFile } from "../services/state-store";
 import {
 	ACTIVE_LEVELS,
@@ -74,7 +76,16 @@ export function createUcFileCommand(deps: UcFileDeps): CommandDefinition {
 				return;
 			}
 
-			const abs = resolve(ctx.cwd, path);
+			let abs: string;
+			try {
+				abs = safeResolveInCwd(path, ctx.cwd);
+			} catch (e) {
+				if (e instanceof PathEscapeError || e instanceof SymlinkRejectedError) {
+					ctx.ui.notify((e as Error).message, "error");
+					return;
+				}
+				throw e;
+			}
 			if (!existsSync(abs)) {
 				ctx.ui.notify(`ultra-compress: file not found "${abs}"`, "error");
 				return;
@@ -92,15 +103,7 @@ export function createUcFileCommand(deps: UcFileDeps): CommandDefinition {
 				return;
 			}
 
-			if (abs.endsWith(".original.md")) {
-				ctx.ui.notify(
-					new UnsupportedFileTypeError(abs, "path looks like a backup file").message,
-					"error",
-				);
-				return;
-			}
-
-			const backupPath = `${abs}.original${ext}`;
+			const backupPath = backupPathFor(abs);
 			if (existsSync(backupPath)) {
 				ctx.ui.notify(new BackupExistsError(backupPath).message, "error");
 				return;

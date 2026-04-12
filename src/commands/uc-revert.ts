@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { backupPathFor } from "../services/backup-path";
+import { PathEscapeError, SymlinkRejectedError, safeResolveInCwd } from "../services/path-guard";
 import type { CommandDefinition } from "./types";
 
 export function createUcRevertCommand(): CommandDefinition {
@@ -12,9 +13,17 @@ export function createUcRevertCommand(): CommandDefinition {
 				ctx.ui.notify("ultra-compress: usage: /uc-revert <path>", "error");
 				return;
 			}
-			const abs = resolve(ctx.cwd, path);
-			const ext = abs.slice(abs.lastIndexOf("."));
-			const backup = `${abs}.original${ext}`;
+			let abs: string;
+			try {
+				abs = safeResolveInCwd(path, ctx.cwd);
+			} catch (e) {
+				if (e instanceof PathEscapeError || e instanceof SymlinkRejectedError) {
+					ctx.ui.notify((e as Error).message, "error");
+					return;
+				}
+				throw e;
+			}
+			const backup = backupPathFor(abs);
 			if (!existsSync(backup)) {
 				ctx.ui.notify(`ultra-compress: no backup at ${backup}`, "error");
 				return;
