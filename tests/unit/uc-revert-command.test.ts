@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -59,5 +59,41 @@ describe("/uc-revert command", () => {
 		const cmd = createUcRevertCommand();
 		await cmd.handler(join(dir, "link.md"), { cwd: dir, ui: { notify } });
 		expect(notify).toHaveBeenCalledWith(expect.stringMatching(/symlink/i), "error");
+	});
+});
+
+describe("/uc-revert autocomplete", () => {
+	it("completes only files with an adjacent .original.md backup", () => {
+		const dir = mkdtempSync(join(tmpdir(), "uc-rev-"));
+		try {
+			// a.md has a backup → revertable
+			writeFileSync(join(dir, "a.md"), "x");
+			writeFileSync(join(dir, "a.md.original.md"), "orig");
+			// b.md has no backup → not revertable
+			writeFileSync(join(dir, "b.md"), "x");
+			const cmd = createUcRevertCommand({ cwd: dir });
+			const items = cmd.getArgumentCompletions?.("") ?? [];
+			const values = items.map((i) => i.value);
+			expect(values).toContain("a.md");
+			expect(values).not.toContain("b.md");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("completes nested paths and surfaces subdirectories", () => {
+		const dir = mkdtempSync(join(tmpdir(), "uc-rev-"));
+		try {
+			mkdirSync(join(dir, "skills"), { recursive: true });
+			writeFileSync(join(dir, "skills", "SKILL.md"), "x");
+			writeFileSync(join(dir, "skills", "SKILL.md.original.md"), "orig");
+			const cmd = createUcRevertCommand({ cwd: dir });
+			const a = cmd.getArgumentCompletions?.("sk") ?? [];
+			expect(a.map((i) => i.value)).toContain("skills/");
+			const b = cmd.getArgumentCompletions?.("skills/") ?? [];
+			expect(b.map((i) => i.value)).toContain("skills/SKILL.md");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
 	});
 });

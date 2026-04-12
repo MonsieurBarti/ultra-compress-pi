@@ -1,8 +1,9 @@
-import { type Dirent, existsSync, readdirSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { basename } from "node:path";
 import { backupPathFor } from "../services/backup-path";
 import { extOf, isSupportedExtension } from "../services/file-ops";
 import { buildLevelPromptFragment } from "../services/level-prompts";
+import { completePath } from "../services/path-complete";
 import { safeResolveInCwd } from "../services/path-guard";
 import {
 	ACTIVE_LEVELS,
@@ -35,46 +36,6 @@ function parseArgs(args: string): { path: string; level: string; yes: boolean } 
 		level: filtered[1] ?? "",
 		yes,
 	};
-}
-
-function completePath(partial: string, baseDir: string): string[] {
-	// Split "foo/bar/ba" → ("foo/bar/", "ba"); "ba" → ("", "ba")
-	let dirPart: string;
-	let tail: string;
-	const lastSep = partial.lastIndexOf("/");
-	if (lastSep === -1) {
-		dirPart = "";
-		tail = partial;
-	} else {
-		dirPart = partial.slice(0, lastSep + 1);
-		tail = partial.slice(lastSep + 1);
-	}
-
-	const searchDir = dirPart === "" ? resolve(baseDir) : resolve(baseDir, dirPart);
-
-	let entries: Dirent<string>[];
-	try {
-		entries = readdirSync(searchDir, { withFileTypes: true, encoding: "utf8" });
-	} catch {
-		return [];
-	}
-
-	const results: string[] = [];
-	for (const entry of entries) {
-		if (entry.name.startsWith(".")) continue;
-		if (!entry.name.startsWith(tail)) continue;
-		if (entry.isDirectory()) {
-			results.push(`${dirPart}${entry.name}/`);
-			continue;
-		}
-		if (entry.isFile()) {
-			if (entry.name.endsWith(".original.md")) continue;
-			if (isSupportedExtension(extOf(entry.name))) {
-				results.push(`${dirPart}${entry.name}`);
-			}
-		}
-	}
-	return results.sort();
 }
 
 function buildPreviewPrompt(absPath: string, level: ActiveLevel): string {

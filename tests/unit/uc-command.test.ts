@@ -46,4 +46,13 @@ describe("/uc command", () => {
 		const items = cmd.getArgumentCompletions?.("") ?? [];
 		expect(items.map((i) => i.value)).toEqual(["off", "lite", "standard", "ultra", "symbolic"]);
 	});
+
+	it("shows a usage hint and does not touch state when called with empty args", async () => {
+		const cmd = createUcCommand();
+		const notify = vi.fn();
+		await cmd.handler("", { cwd: dir, ui: { notify } });
+		expect(notify).toHaveBeenCalledWith(expect.stringContaining("usage:"), "error");
+		const state = await loadState(dir);
+		expect(state.level).toBe("off");
+	});
 });
