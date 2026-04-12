@@ -105,7 +105,7 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	pi.on("resources_discover", () => ({ skills: [skillsDir] }));
 }
 
-// Named library exports for other PI extensions.
+// Named library exports for other PI extensions — public surface only (spec §9).
 
 export type {
 	ActiveLevel,
@@ -115,17 +115,8 @@ export type {
 	Mode,
 } from "./types";
 export { PIContextRequiredError } from "./types";
-export {
-	buildLevelPromptFragment,
-	applyLevelLexical,
-	maskProtectedZones,
-	unmaskProtectedZones,
-	validateCompression,
-	compressTextPipeline,
-	levelFactor,
-	estimateCharsSaved,
-	loadState,
-} from "./services";
+export { buildLevelPromptFragment } from "./services/level-prompts";
+export { validateCompression } from "./services/validator";
 
 export async function getActiveLevel(projectRoot?: string): Promise<Level> {
 	const state = await loadState(projectRoot);
