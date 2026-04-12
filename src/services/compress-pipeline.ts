@@ -75,6 +75,21 @@ export async function compressTextPipeline(opts: CompressPipelineInput): Promise
 		stripped = stripped.replace(/⟨PROT:\d+⟩[.,;:!?]/g, (match) => match.slice(0, -1));
 		lastOutput = stripped;
 
+		// Check protected tokens survived the LLM pass BEFORE unmasking, so
+		// dropped tokens surface as a specific repair signal rather than as
+		// vague "missing URL" errors downstream.
+		const missing: string[] = [];
+		for (let i = 0; i < tokens.length; i++) {
+			if (!stripped.includes(`⟨PROT:${i}⟩`)) missing.push(`⟨PROT:${i}⟩`);
+		}
+		if (missing.length > 0) {
+			lastErrors = [
+				`dropped protected tokens: ${missing.join(", ")} — these MUST appear verbatim in the output`,
+			];
+			attempt += 1;
+			continue;
+		}
+
 		const unmasked = unmaskProtectedZones(stripped, tokens);
 		const report = validateCompression(input, unmasked);
 

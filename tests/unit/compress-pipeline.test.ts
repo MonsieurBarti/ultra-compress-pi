@@ -67,4 +67,23 @@ describe("compressTextPipeline", () => {
 		});
 		expect(result.compressed).toBe("Foo.");
 	});
+
+	it("detects dropped protected tokens and triggers repair with a specific error", async () => {
+		const input = "alpha `foo()` bravo";
+		// First attempt: LLM drops the ⟨PROT:0⟩ token entirely.
+		// Second attempt: LLM includes it.
+		const llm = makeLLM(["alpha bravo", "alpha ⟨PROT:0⟩ bravo"]);
+		const result = await compressTextPipeline({
+			input,
+			level: "standard",
+			mode: "file",
+			llm,
+			maxRepairRetries: 2,
+		});
+		expect(result.compressed).toContain("`foo()`");
+		expect(llm).toHaveBeenCalledTimes(2);
+		// The second call (repair prompt) must mention the dropped token.
+		const secondCallArgs = (llm as unknown as { mock: { calls: string[][] } }).mock.calls[1] ?? [];
+		expect(secondCallArgs[0]).toMatch(/⟨PROT:0⟩|protected token/i);
+	});
 });
