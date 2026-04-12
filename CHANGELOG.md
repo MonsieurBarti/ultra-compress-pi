@@ -1,3 +1,34 @@
 # Changelog
 
+## [0.1.1](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.0...ultra-compress-pi-v0.1.1) (2026-04-12)
+
+
+### Features
+
+* add core types and error classes ([ed0e317](https://github.com/MonsieurBarti/ultra-compress-pi/commit/ed0e317360446427839510fb13849908c1a32f3f))
+* **commands:** add /uc command with level autocomplete ([efc3748](https://github.com/MonsieurBarti/ultra-compress-pi/commit/efc374883374e771997fceacd62846be9ee6b284))
+* **commands:** add /uc-file with compress pipeline, backup, and autocomplete ([23a65cf](https://github.com/MonsieurBarti/ultra-compress-pi/commit/23a65cf19a9d7fcf66766afbbe0d0a970280d69b))
+* **commands:** add /uc-revert command ([5efca0e](https://github.com/MonsieurBarti/ultra-compress-pi/commit/5efca0ebb1d210e7ddd82c29a99c036dd51ee8fd))
+* **commands:** add /uc-status command ([ded1fc6](https://github.com/MonsieurBarti/ultra-compress-pi/commit/ded1fc636d29dacc934d6a5b9d472dc3b90f2e52))
+* **hooks:** add agent_end hook for session stats auto-increment ([e7bbd60](https://github.com/MonsieurBarti/ultra-compress-pi/commit/e7bbd60732832ae8bce3cf942661405e3bc7b616))
+* **hooks:** add before_agent_start hook to augment system prompt with level marker ([d3069bd](https://github.com/MonsieurBarti/ultra-compress-pi/commit/d3069bdaa07f9a78a53a1078585fda956d28ea06))
+* initial implementation of ultra-compress PI extension ([16f2604](https://github.com/MonsieurBarti/ultra-compress-pi/commit/16f2604b574b650dc071b70307950a0cac272050))
+* **pipeline:** detect dropped protected tokens pre-unmask and surface specific repair signal ([9709102](https://github.com/MonsieurBarti/ultra-compress-pi/commit/97091023e2f455b620559ea8951748b58607232b))
+* **services:** add deterministic level-rules pre-pass with protected-zone masking ([3527cba](https://github.com/MonsieurBarti/ultra-compress-pi/commit/3527cba0fcf17dfe2680e6ddcfcd066272ba5836))
+* **services:** add level prompt fragments for runtime and file modes ([a81cfa9](https://github.com/MonsieurBarti/ultra-compress-pi/commit/a81cfa928d521d057dfa27170bd472cff80864e5))
+* **services:** add state-store with round-trip, reset, and corrupt-file recovery ([7f75329](https://github.com/MonsieurBarti/ultra-compress-pi/commit/7f75329a236a3e266cfc396cd5543911542b147e))
+* **services:** add stats heuristic for estimated chars saved per level ([893ed2e](https://github.com/MonsieurBarti/ultra-compress-pi/commit/893ed2edffb6ab723ff324ce6eb6f3b17a0137c1))
+* **services:** add structural validator for compression invariants ([a74ebf2](https://github.com/MonsieurBarti/ultra-compress-pi/commit/a74ebf25696e545906a26104b5ba8e6a7bf0dbba))
+* wire pi extension registrar and library exports ([df147c0](https://github.com/MonsieurBarti/ultra-compress-pi/commit/df147c05ae02ddaa36af76994c1c3f94116b6aba))
+
+
+### Bug Fixes
+
+* **commands:** use literal .original.md backup filename for all supported extensions ([9bbeaf7](https://github.com/MonsieurBarti/ultra-compress-pi/commit/9bbeaf7737b1d9e83443506ef831c5dfd847c551))
+* **security:** atomic state file write + reject symlinked state path ([f4eaef6](https://github.com/MonsieurBarti/ultra-compress-pi/commit/f4eaef63af8e35e48ea370524ee01a331b38f56c))
+* **security:** reject path traversal and symlinks in uc-file and uc-revert ([2839bb6](https://github.com/MonsieurBarti/ultra-compress-pi/commit/2839bb6f0ba75bf87222e5333171d8595a2a0a6f))
+* **validator:** detect heading reordering, not just count drift ([fcfab35](https://github.com/MonsieurBarti/ultra-compress-pi/commit/fcfab350c22a30efe0b220da0aef5a9c14f314ac))
+
+## Changelog
+
 All notable changes to this project will be documented in this file.
