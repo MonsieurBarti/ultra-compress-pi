@@ -98,12 +98,12 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	});
 
 	pi.on("before_agent_start", async (event, ctx) => {
-		const e = event as { prompt?: string; systemPrompt?: string };
+		const e = event as { prompt?: unknown; systemPrompt?: string };
 		const c = ctx as { cwd?: string };
-		if (typeof e?.prompt !== "string" || typeof e?.systemPrompt !== "string") return;
-		if (typeof c?.cwd !== "string") return;
+		if (typeof e?.systemPrompt !== "string") return undefined;
+		if (typeof c?.cwd !== "string") return undefined;
 		return await beforeAgentStart(
-			{ prompt: e.prompt, systemPrompt: e.systemPrompt },
+			{ prompt: typeof e.prompt === "string" ? e.prompt : "", systemPrompt: e.systemPrompt },
 			{ cwd: c.cwd },
 		);
 	});
