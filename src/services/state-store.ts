@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { Level, ProjectState, SessionStats } from "../types";
@@ -58,7 +58,21 @@ export async function loadState(projectRoot?: string): Promise<ProjectState> {
 export async function saveState(state: ProjectState, projectRoot?: string): Promise<void> {
 	const path = resolveStatePath(projectRoot);
 	await mkdir(dirname(path), { recursive: true });
-	await writeFile(path, JSON.stringify(state, null, 2), "utf8");
+
+	// Refuse to write if the existing path is a symlink (avoid writing through
+	// a symlink the user didn't intend).
+	try {
+		const st = lstatSync(path);
+		if (st.isSymbolicLink()) {
+			throw new Error(`ultra-compress: refusing to overwrite symlink state file at ${path}`);
+		}
+	} catch (e) {
+		if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+	}
+
+	const tmp = `${path}.tmp-${process.pid}-${Math.random().toString(36).slice(2, 10)}`;
+	await writeFile(tmp, JSON.stringify(state, null, 2), "utf8");
+	await rename(tmp, path);
 }
 
 export async function saveLevel(level: Level, projectRoot?: string): Promise<ProjectState> {
