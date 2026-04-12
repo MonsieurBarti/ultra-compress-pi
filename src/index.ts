@@ -117,7 +117,7 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 
 	const extensionDir = dirname(fileURLToPath(import.meta.url));
 	const skillsDir = join(extensionDir, "skills");
-	pi.on("resources_discover", () => ({ skills: [skillsDir] }));
+	pi.on("resources_discover", () => ({ skillPaths: [skillsDir] }));
 }
 
 // Named library exports for other PI extensions — public surface only (spec §9).
