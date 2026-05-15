@@ -76,3 +76,10 @@ export class UnsupportedFileTypeError extends Error {
 		this.name = "UnsupportedFileTypeError";
 	}
 }
+
+export type {
+	SessionCompactConfig,
+	SessionEntry,
+	StickySection,
+	VolatileSection,
+} from "./types/session-compact.js";
