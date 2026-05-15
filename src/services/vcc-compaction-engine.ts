@@ -5,6 +5,7 @@ import { extractFileActivity } from "./extract/files.js";
 import { extractGoal } from "./extract/goals.js";
 import { type FilterNoiseOptions, filterNoise } from "./filter-noise.js";
 import { type VccSemanticSections, capBrief, formatVccSummary } from "./format-vcc-summary.js";
+export { formatVccSummary } from "./format-vcc-summary.js";
 
 export interface CompactSessionVccOptions {
 	filterNoise?: FilterNoiseOptions;
