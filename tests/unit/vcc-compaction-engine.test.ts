@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	compactSessionVcc,
 	estimateTokenReduction,
+	extractVccSections,
 } from "../../src/services/vcc-compaction-engine.js";
 import { makeMultiTurnSession } from "../fixtures/vcc-sessions.js";
 
@@ -61,6 +62,45 @@ describe("compactSessionVcc", () => {
 		// The function signature intentionally excludes enhanceGoal
 		const opts = {} as Record<string, unknown>;
 		expect(opts.enhanceGoal).toBeUndefined();
+	});
+});
+
+describe("extractVccSections", () => {
+	it("returns a VccSemanticSections object", () => {
+		const messages = makeMultiTurnSession();
+		const sections = extractVccSections(messages);
+		expect(sections).toHaveProperty("goal");
+		expect(sections).toHaveProperty("files");
+		expect(sections).toHaveProperty("commits");
+		expect(sections).toHaveProperty("outstandingContext");
+		expect(sections).toHaveProperty("userPreferences");
+		expect(sections).toHaveProperty("brief");
+	});
+
+	it("populates sections correctly from messages", () => {
+		const messages = makeMultiTurnSession();
+		const sections = extractVccSections(messages);
+		expect(sections.goal).not.toBe("No active goal");
+		expect(
+			sections.files.read.length + sections.files.modified.length + sections.files.created.length,
+		).toBeGreaterThan(0);
+		expect(sections.commits.length).toBeGreaterThanOrEqual(0);
+		expect(sections.userPreferences.length).toBeGreaterThanOrEqual(0);
+	});
+
+	it("passes options through to extraction pipeline", () => {
+		const messages = makeMultiTurnSession();
+		const sections = extractVccSections(messages, {
+			filterNoise: { removeThinking: true, stripXml: true },
+			capBriefMaxLines: 3,
+		});
+		expect(sections.brief.length).toBeLessThanOrEqual(3);
+	});
+
+	it("returns empty/default sections for empty input", () => {
+		const sections = extractVccSections([]);
+		expect(sections.goal).toBe("No active goal");
+		expect(sections.brief).toEqual([]);
 	});
 });
 

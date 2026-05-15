@@ -67,10 +67,10 @@ function extractUserPreferences(messages: TranscriptMessage[]): string[] {
 	return prefs.slice(0, 10);
 }
 
-export function compactSessionVcc(
+export function extractVccSections(
 	messages: TranscriptMessage[],
 	opts: CompactSessionVccOptions = {},
-): string {
+): VccSemanticSections {
 	// 1. Filter noise
 	const filtered = filterNoise(messages, opts.filterNoise);
 
@@ -90,8 +90,7 @@ export function compactSessionVcc(
 	// 5. Cap brief
 	const cappedBrief = capBrief(briefLines, opts.capBriefMaxLines ?? 120);
 
-	// 6. Format
-	const sections: VccSemanticSections = {
+	return {
 		goal,
 		files,
 		commits,
@@ -99,8 +98,13 @@ export function compactSessionVcc(
 		userPreferences,
 		brief: cappedBrief,
 	};
+}
 
-	return formatVccSummary(sections);
+export function compactSessionVcc(
+	messages: TranscriptMessage[],
+	opts: CompactSessionVccOptions = {},
+): string {
+	return formatVccSummary(extractVccSections(messages, opts));
 }
 
 /** Estimates token reduction by comparing raw word count to summary word count */
