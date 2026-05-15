@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.6](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.5...ultra-compress-pi-v0.1.6) (2026-05-15)
+
+
+### Bug Fixes
+
+* **session-compact:** handle real pi session jsonl format with nested messages and content arrays ([ec71ad9](https://github.com/MonsieurBarti/ultra-compress-pi/commit/ec71ad91f770ee9eff665fed6741f129c7a98ebf))
+* **session-compact:** handle real PI session JSONL format with nested messages and content arrays ([1117034](https://github.com/MonsieurBarti/ultra-compress-pi/commit/11170344931f9a7de09ad082e3074a8a2422307b))
+
 ## [0.1.5](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.4...ultra-compress-pi-v0.1.5) (2026-05-15)
 
 
