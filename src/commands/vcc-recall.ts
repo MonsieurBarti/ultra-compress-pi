@@ -3,11 +3,11 @@ import { readSessionEntries, resolveSessionJsonlPath } from "../services/session
 import { computeRecentLines, parseRecallArgs } from "./recall-shared.js";
 import type { CommandDefinition } from "./types.js";
 
-export function createUcRecallCommand(): CommandDefinition {
+export function createVccRecallCommand(): CommandDefinition {
 	return {
-		name: "uc-recall",
+		name: "vcc-recall",
 		description:
-			"Search session history with regex or ranked multi-word queries. Usage: /uc-recall <query> [page:N] [expand:1,2,3]",
+			"Search session history with ranked multi-word queries. Usage: /vcc-recall <query> [page:N] [expand:1,2,3]",
 		async handler(args, ctx) {
 			const path =
 				ctx.sessionManager?.getSessionFile() ?? resolveSessionJsonlPath({ projectRoot: ctx.cwd });

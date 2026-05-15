@@ -21,6 +21,7 @@ function defaultConfig(): SessionCompactConfig {
 	return {
 		overrideDefaultCompaction: false,
 		useLLMForGoal: false,
+		useVccPipeline: false,
 		updatedAt: new Date().toISOString(),
 	};
 }
@@ -38,6 +39,7 @@ export async function loadSessionCompactConfig(
 		return {
 			overrideDefaultCompaction: parsed.overrideDefaultCompaction ?? false,
 			useLLMForGoal: parsed.useLLMForGoal ?? false,
+			useVccPipeline: parsed.useVccPipeline ?? false,
 			updatedAt: parsed.updatedAt ?? new Date().toISOString(),
 		};
 	} catch {

@@ -1,6 +1,9 @@
 import { mergeWithPrevious, parsePreviousSummary } from "../services/bounded-merge.js";
 import { extractSections, formatSummary } from "../services/compaction-engine.js";
+import { mergeWithPreviousVcc } from "../services/merge-vcc-previous.js";
+import { parsePreviousSummaryVcc } from "../services/parse-vcc-summary.js";
 import { normalizeAgentMessages } from "../services/session-normalizer.js";
+import { extractVccSections, formatVccSummary } from "../services/vcc-compaction-engine.js";
 import type {
 	CompactionPreparation,
 	EnhanceGoalFn,
@@ -29,6 +32,31 @@ export function createSessionBeforeCompactHook(
 			return undefined;
 		}
 
+		// VCC branch
+		if (config.useVccPipeline) {
+			const messages = normalizeAgentMessages(preparation.messagesToSummarize);
+			const currentSections = extractVccSections(messages, {
+				fileOps: preparation.fileOps,
+				buildOwnCut: { firstKeptEntryId: preparation.firstKeptEntryId },
+			});
+
+			let summarySections = currentSections;
+			if (preparation.previousSummary) {
+				const previousSections = parsePreviousSummaryVcc(preparation.previousSummary);
+				summarySections = mergeWithPreviousVcc(previousSections, currentSections);
+			}
+
+			return {
+				compaction: {
+					summary: formatVccSummary(summarySections),
+					firstKeptEntryId: preparation.firstKeptEntryId,
+					tokensBefore: preparation.tokensBefore,
+					details: { algorithmic: true, vcc: true },
+				},
+			};
+		}
+
+		// Legacy branch
 		const messages = normalizeAgentMessages(preparation.messagesToSummarize);
 		const currentSections = await extractSections(messages, {
 			enhanceGoal: config.useLLMForGoal ? deps.enhanceGoal : undefined,

@@ -54,7 +54,7 @@ function extractFilesAndChanges(messages: TranscriptMessage[]): string[] {
 	return Array.from(files).slice(0, MAX_FILES);
 }
 
-function extractCommits(messages: TranscriptMessage[]): string[] {
+export function extractCommits(messages: TranscriptMessage[]): string[] {
 	const commits: string[] = [];
 	for (const msg of messages) {
 		const matches = msg.content.matchAll(/(?:commit|git commit|committed?)[\s:-]+(.+)/gi);
@@ -66,7 +66,7 @@ function extractCommits(messages: TranscriptMessage[]): string[] {
 	return commits.slice(0, MAX_COMMITS);
 }
 
-function extractOutstandingContext(messages: TranscriptMessage[]): string[] {
+export function extractOutstandingContext(messages: TranscriptMessage[]): string[] {
 	const items: string[] = [];
 	for (const msg of messages) {
 		if (msg.role === "user" && /\?(?:\s|$)/.test(msg.content)) {
@@ -82,7 +82,7 @@ function extractOutstandingContext(messages: TranscriptMessage[]): string[] {
 	return items.slice(0, MAX_CONTEXT_ITEMS);
 }
 
-function extractUserPreferences(messages: TranscriptMessage[]): string[] {
+export function extractUserPreferences(messages: TranscriptMessage[]): string[] {
 	const prefs: string[] = [];
 	for (const msg of messages) {
 		if (msg.role !== "user") continue;

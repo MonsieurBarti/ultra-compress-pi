@@ -36,6 +36,8 @@ describe("index registration", () => {
 		extension(pi as unknown as Parameters<typeof extension>[0]);
 		expect(pi.commands.has("uc-compact")).toBe(true);
 		expect(pi.commands.has("uc-recall")).toBe(true);
+		expect(pi.commands.has("uc-vcc")).toBe(true);
+		expect(pi.commands.has("vcc-recall")).toBe(true);
 	});
 
 	it("registers all legacy hooks", async () => {
