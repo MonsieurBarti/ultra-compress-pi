@@ -46,6 +46,17 @@ describe("session-config", () => {
 		expect(readFileSync(path, "utf8")).toContain("overrideDefaultCompaction");
 	});
 
+	it("ensureSessionCompactConfig returns existing config without overwriting", async () => {
+		await saveSessionCompactConfig({
+			overrideDefaultCompaction: true,
+			useLLMForGoal: true,
+			updatedAt: new Date().toISOString(),
+		});
+		const cfg = await ensureSessionCompactConfig();
+		expect(cfg.overrideDefaultCompaction).toBe(true);
+		expect(cfg.useLLMForGoal).toBe(true);
+	});
+
 	it("writes atomically (no stray tmp files)", async () => {
 		await saveSessionCompactConfig({
 			overrideDefaultCompaction: true,

@@ -1,3 +1,61 @@
+/**
+ * Session compaction types — inlined structural types based on PI SDK.
+ *
+ * The `session_before_compact` hook receives:
+ *   { preparation: CompactionPreparation, branchEntries: SessionEntry[], customInstructions?: string, signal: AbortSignal }
+ *
+ * It should return:
+ *   { cancel?: boolean; compaction?: CompactionResult }
+ *
+ * When overrideDefaultCompaction is false (default), the hook returns undefined
+ * and PI's default LLM-based compaction runs.
+ */
+
+export interface CompactionSettings {
+	enabled: boolean;
+	reserveTokens: number;
+	keepRecentTokens: number;
+}
+
+export interface AgentMessage {
+	role: string;
+	content: unknown;
+}
+
+export interface FileOperations {
+	operations: unknown[];
+}
+
+export interface CompactionPreparation {
+	firstKeptEntryId: string;
+	messagesToSummarize: AgentMessage[];
+	turnPrefixMessages: AgentMessage[];
+	isSplitTurn: boolean;
+	tokensBefore: number;
+	previousSummary?: string;
+	fileOps: FileOperations;
+	settings: CompactionSettings;
+}
+
+export interface CompactionResult {
+	summary: string;
+	firstKeptEntryId: string;
+	tokensBefore: number;
+	details?: unknown;
+}
+
+export interface SessionBeforeCompactResult {
+	cancel?: boolean;
+	compaction?: CompactionResult;
+}
+
+export interface SessionBeforeCompactEvent {
+	preparation: CompactionPreparation;
+	branchEntries: SessionEntry[];
+	customInstructions?: string;
+	signal: AbortSignal;
+}
+
 export interface SessionCompactConfig {
 	overrideDefaultCompaction: boolean;
 	useLLMForGoal: boolean;
