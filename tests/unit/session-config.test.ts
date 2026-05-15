@@ -25,6 +25,23 @@ describe("session-config", () => {
 		const cfg = await loadSessionCompactConfig();
 		expect(cfg.overrideDefaultCompaction).toBe(false);
 		expect(cfg.useLLMForGoal).toBe(false);
+		expect(cfg.useVccPipeline).toBe(false);
+	});
+
+	it("defaults useVccPipeline to false", async () => {
+		const config = await loadSessionCompactConfig();
+		expect(config.useVccPipeline).toBe(false);
+	});
+
+	it("reads useVccPipeline from config file", async () => {
+		await saveSessionCompactConfig({
+			overrideDefaultCompaction: false,
+			useLLMForGoal: false,
+			useVccPipeline: true,
+			updatedAt: new Date().toISOString(),
+		});
+		const config = await loadSessionCompactConfig();
+		expect(config.useVccPipeline).toBe(true);
 	});
 
 	it("round-trips config through save + load", async () => {

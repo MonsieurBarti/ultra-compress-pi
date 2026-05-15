@@ -62,6 +62,7 @@ export interface SessionBeforeCompactEvent {
 export interface SessionCompactConfig {
 	overrideDefaultCompaction: boolean;
 	useLLMForGoal: boolean;
+	useVccPipeline?: boolean;
 	updatedAt: string;
 }
 
