@@ -8,6 +8,7 @@ export interface VccSemanticSections {
 	outstandingContext: string[];
 	userPreferences: string[];
 	brief: BriefLine[];
+	recallNotes?: string[];
 }
 
 export function capBrief(briefLines: BriefLine[], maxLines = 120): BriefLine[] {
