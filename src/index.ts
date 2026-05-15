@@ -4,18 +4,23 @@ import {
 	type CommandContext,
 	type CommandDefinition,
 	createUcCommand,
+	createUcCompactCommand,
 	createUcFileCommand,
+	createUcRecallCommand,
 	createUcRevertCommand,
 	createUcStatusCommand,
 } from "./commands/index.js";
 import {
 	createAgentEndHook,
 	createBeforeAgentStartHook,
+	createSessionBeforeCompactHook,
 	createSessionStartHook,
 } from "./hooks/index.js";
 import { applyLevelLexical } from "./services/level-rules.js";
+import { loadSessionCompactConfig } from "./services/session-config.js";
 import { loadState } from "./services/state-store.js";
 import type { ActiveLevel, Level } from "./types.js";
+import type { CompactionPreparation } from "./types/session-compact.js";
 
 // Structural PI API (inlined to avoid requiring peer deps at test time).
 
@@ -73,10 +78,15 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	);
 	pi.registerCommand("uc-status", wrapCommand(createUcStatusCommand()));
 	pi.registerCommand("uc-revert", wrapCommand(createUcRevertCommand()));
+	pi.registerCommand("uc-recall", wrapCommand(createUcRecallCommand()));
+	pi.registerCommand("uc-compact", wrapCommand(createUcCompactCommand()));
 
 	const sessionStart = createSessionStartHook({ notify });
 	const beforeAgentStart = createBeforeAgentStartHook();
 	const agentEnd = createAgentEndHook();
+	const sessionBeforeCompact = createSessionBeforeCompactHook({
+		loadConfig: loadSessionCompactConfig,
+	});
 
 	pi.on("session_start", async (event, ctx) => {
 		const e = event as { reason?: string };
@@ -101,6 +111,14 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 		if (typeof c?.cwd !== "string") return;
 		const e = event as { content?: unknown; stopReason?: string };
 		await agentEnd(e, { cwd: c.cwd });
+	});
+
+	pi.on("session_before_compact", async (event, _ctx) => {
+		const e = event as {
+			preparation?: CompactionPreparation;
+		};
+		if (!e?.preparation) return undefined;
+		return await sessionBeforeCompact(e.preparation);
 	});
 
 	const extensionDir = dirname(fileURLToPath(import.meta.url));

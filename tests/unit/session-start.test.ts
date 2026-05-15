@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -41,5 +41,16 @@ describe("session_start hook", () => {
 		const state = await loadState();
 		expect(state.session.autoClarityCount).toBe(0);
 		expect(state.session.estimatedOutputCharsSaved).toBe(0);
+	});
+
+	it("scaffolds session compact config on session start", async () => {
+		const notify = vi.fn();
+		const hook = createSessionStartHook({ notify });
+		await hook({ reason: "startup" }, { cwd: dir });
+		const path = join(dir, ".pi", "ultra-compress-session.json");
+		expect(existsSync(path)).toBe(true);
+		const contents = JSON.parse(readFileSync(path, "utf8"));
+		expect(contents.overrideDefaultCompaction).toBe(false);
+		expect(contents.useLLMForGoal).toBe(false);
 	});
 });
