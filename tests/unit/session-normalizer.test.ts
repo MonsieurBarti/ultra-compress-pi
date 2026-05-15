@@ -60,4 +60,37 @@ describe("session-normalizer", () => {
 		const out = normalizeAgentMessages(messages);
 		expect(out).toHaveLength(1);
 	});
+
+	it("normalizes unknown role to thinking", () => {
+		const messages = [{ role: "unknown", content: "something" }] as AgentMessage[];
+		const out = normalizeAgentMessages(messages);
+		expect(out[0]?.role).toBe("thinking");
+	});
+
+	it("handles AgentMessage with toolCallId and toolResults", () => {
+		const messages = [
+			{ role: "tool", content: "result data", toolCallId: "tc-1", toolResults: "ok" },
+		] as AgentMessage[];
+		const out = normalizeAgentMessages(messages);
+		expect(out[0]?.toolResults).toEqual([{ id: "tc-1", content: "ok" }]);
+	});
+
+	it("filters system SessionEntries", () => {
+		const entries = [
+			{ id: "1", type: "system", content: "instructions" },
+			{ id: "2", type: "user", content: "hello" },
+		] as SessionEntry[];
+		const out = normalizeSessionEntries(entries);
+		expect(out).toHaveLength(1);
+		expect(out[0]?.role).toBe("user");
+	});
+
+	it("skips empty-content SessionEntries", () => {
+		const entries = [
+			{ id: "1", type: "user", content: "" },
+			{ id: "2", type: "user", content: "hello" },
+		] as SessionEntry[];
+		const out = normalizeSessionEntries(entries);
+		expect(out).toHaveLength(1);
+	});
 });

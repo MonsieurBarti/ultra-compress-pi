@@ -72,4 +72,15 @@ describe("session-reader", () => {
 		const entries = await readSessionEntries(join(dir, "missing.jsonl"));
 		expect(entries).toEqual([]);
 	});
+
+	it("reads large files without crashing", async () => {
+		const path = join(dir, "big.jsonl");
+		// Generate 1000 lines of JSONL
+		const lines = Array.from({ length: 1000 }, (_, i) =>
+			JSON.stringify({ id: String(i), type: "user", content: `message ${i}` }),
+		);
+		writeFileSync(path, lines.join("\n"));
+		const entries = await readSessionEntries(path);
+		expect(entries.length).toBe(1000);
+	});
 });

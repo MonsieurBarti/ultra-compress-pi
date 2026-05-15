@@ -57,4 +57,10 @@ describe("recall-engine", () => {
 		const matches = searchSessionEntries(makeEntries(), "xyz-nonexistent");
 		expect(matches).toHaveLength(0);
 	});
+
+	it("falls back gracefully for invalid regex", () => {
+		const entries = makeEntries();
+		const matches = searchSessionEntries(entries, "[invalid(regex");
+		expect(matches).toEqual([]);
+	});
 });
