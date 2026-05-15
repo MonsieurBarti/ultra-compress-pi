@@ -153,12 +153,12 @@ export function buildOwnCut(
 		}
 	}
 
-	// Ensure we keep at least minOrphanTurns complete turns
+	// Ensure we orphan at least minOrphanTurns complete turns
 	let orphanCount = 0;
-	for (let i = turns.length - 1; i >= 0; i--) {
+	for (let i = 0; i < turns.length; i++) {
 		if (turns[i]?.isComplete) orphanCount++;
 		if (orphanCount >= minOrphanTurns) {
-			cutIndex = (turns[i]?.endIndex ?? 0) + 1;
+			cutIndex = Math.max(cutIndex, (turns[i]?.endIndex ?? 0) + 1);
 			break;
 		}
 	}
