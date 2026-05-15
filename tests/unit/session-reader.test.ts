@@ -47,8 +47,8 @@ describe("session-reader", () => {
 		);
 		const entries = await readSessionEntries(path);
 		expect(entries).toHaveLength(2);
-		expect(entries[0]!.id).toBe("1");
-		expect(entries[1]!.type).toBe("assistant");
+		expect(entries[0]?.id).toBe("1");
+		expect(entries[1]?.type).toBe("assistant");
 	});
 
 	it("skips empty lines and malformed JSONL entries", async () => {
@@ -64,8 +64,8 @@ describe("session-reader", () => {
 		);
 		const entries = await readSessionEntries(path);
 		expect(entries).toHaveLength(2);
-		expect(entries[0]!.id).toBe("1");
-		expect(entries[1]!.id).toBe("2");
+		expect(entries[0]?.id).toBe("1");
+		expect(entries[1]?.id).toBe("2");
 	});
 
 	it("returns empty array for nonexistent path", async () => {

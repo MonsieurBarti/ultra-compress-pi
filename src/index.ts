@@ -5,6 +5,7 @@ import {
 	type CommandDefinition,
 	createUcCommand,
 	createUcFileCommand,
+	createUcRecallCommand,
 	createUcRevertCommand,
 	createUcStatusCommand,
 } from "./commands/index.js";
@@ -73,6 +74,7 @@ export default function ultraCompressExtension(pi: PiExtensionApi): void {
 	);
 	pi.registerCommand("uc-status", wrapCommand(createUcStatusCommand()));
 	pi.registerCommand("uc-revert", wrapCommand(createUcRevertCommand()));
+	pi.registerCommand("uc-recall", wrapCommand(createUcRecallCommand()));
 
 	const sessionStart = createSessionStartHook({ notify });
 	const beforeAgentStart = createBeforeAgentStartHook();

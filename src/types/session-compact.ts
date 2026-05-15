@@ -20,6 +20,9 @@ export interface CompactionSettings {
 export interface AgentMessage {
 	role: string;
 	content: unknown;
+	toolCalls?: Array<{ id: string; name: string; arguments: Record<string, unknown> }>;
+	toolCallId?: string;
+	toolResults?: unknown;
 }
 
 export interface FileOperations {
@@ -70,4 +73,34 @@ export interface SessionEntry {
 	type: string;
 	content?: unknown;
 	// Loose shape — session JSONL entries vary
+}
+
+export interface TranscriptMessage {
+	role: "user" | "assistant" | "tool_call" | "tool_result" | "system" | "thinking";
+	content: string;
+	toolCalls?: Array<{ id: string; name: string; arguments: Record<string, unknown> }>;
+	toolResults?: Array<{ id: string; content: string }>;
+}
+
+export interface SemanticSections {
+	goal: string;
+	filesAndChanges: string[];
+	commits: string[];
+	outstandingContext: string[];
+	userPreferences: string[];
+	transcript: string[];
+}
+
+export interface RecallMatch {
+	index: number;
+	entry: SessionEntry;
+	score: number;
+	matchedTerms: string[];
+}
+
+export interface RecallResult {
+	matches: RecallMatch[];
+	total: number;
+	page: number;
+	pageSize: number;
 }
