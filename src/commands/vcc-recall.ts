@@ -28,8 +28,7 @@ function parseRecallArgs(args: string): { query: string; page: number; expand?: 
 export function createVccRecallCommand(): CommandDefinition {
 	return {
 		name: "vcc-recall",
-		description:
-			"BM25-powered session recall. Usage: /vcc-recall <query> [page:N] [expand:1,2,3]",
+		description: "BM25-powered session recall. Usage: /vcc-recall <query> [page:N] [expand:1,2,3]",
 		async handler(args, ctx) {
 			const path =
 				ctx.sessionManager?.getSessionFile() ?? resolveSessionJsonlPath({ projectRoot: ctx.cwd });

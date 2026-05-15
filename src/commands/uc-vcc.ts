@@ -1,6 +1,6 @@
-import { compactSessionVcc } from "../services/vcc-compaction-engine.js";
 import { normalizeSessionEntries } from "../services/session-normalizer.js";
 import { readSessionEntries, resolveSessionJsonlPath } from "../services/session-reader.js";
+import { compactSessionVcc } from "../services/vcc-compaction-engine.js";
 import type { CommandDefinition } from "./types.js";
 
 export function createUcVccCommand(): CommandDefinition {
