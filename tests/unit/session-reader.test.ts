@@ -51,6 +51,35 @@ describe("session-reader", () => {
 		expect(entries[1]?.type).toBe("assistant");
 	});
 
+	it("reads PI session JSONL format (nested message entries)", async () => {
+		const path = join(dir, "session.jsonl");
+		writeFileSync(
+			path,
+			[
+				JSON.stringify({ type: "session", version: 3, id: "sess-1" }),
+				JSON.stringify({
+					type: "message",
+					id: "1",
+					message: { role: "user", content: "hello" },
+				}),
+				JSON.stringify({
+					type: "message",
+					id: "2",
+					message: { role: "assistant", content: [{ type: "text", text: "hi!" }] },
+				}),
+				JSON.stringify({ type: "compaction", id: "3", summary: "..." }),
+			].join("\n"),
+		);
+		const entries = await readSessionEntries(path);
+		expect(entries).toHaveLength(4);
+		expect(entries[0]?.type).toBe("session");
+		expect(entries[1]?.type).toBe("message");
+		expect(entries[1]?.message?.role).toBe("user");
+		expect(entries[2]?.type).toBe("message");
+		expect(entries[2]?.message?.role).toBe("assistant");
+		expect(entries[3]?.type).toBe("compaction");
+	});
+
 	it("skips empty lines and malformed JSONL entries", async () => {
 		const path = join(dir, "session.jsonl");
 		writeFileSync(
@@ -75,9 +104,13 @@ describe("session-reader", () => {
 
 	it("reads large files without crashing", async () => {
 		const path = join(dir, "big.jsonl");
-		// Generate 1000 lines of JSONL
+		// Generate 1000 lines of PI session JSONL
 		const lines = Array.from({ length: 1000 }, (_, i) =>
-			JSON.stringify({ id: String(i), type: "user", content: `message ${i}` }),
+			JSON.stringify({
+				type: "message",
+				id: String(i),
+				message: { role: "user", content: `message ${i}` },
+			}),
 		);
 		writeFileSync(path, lines.join("\n"));
 		const entries = await readSessionEntries(path);
@@ -86,9 +119,13 @@ describe("session-reader", () => {
 
 	it("streams very large files without crashing", async () => {
 		const path = join(dir, "very-big.jsonl");
-		// Generate 5000 lines of JSONL to exercise the streaming readline path
+		// Generate 5000 lines of PI session JSONL to exercise the streaming readline path
 		const lines = Array.from({ length: 5000 }, (_, i) =>
-			JSON.stringify({ id: String(i), type: "user", content: `message ${i}` }),
+			JSON.stringify({
+				type: "message",
+				id: String(i),
+				message: { role: "user", content: `message ${i}` },
+			}),
 		);
 		writeFileSync(path, lines.join("\n"));
 		const entries = await readSessionEntries(path);

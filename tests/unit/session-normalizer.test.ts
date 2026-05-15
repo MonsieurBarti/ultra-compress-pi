@@ -18,6 +18,43 @@ describe("session-normalizer", () => {
 		expect(out[1]?.role).toBe("assistant");
 	});
 
+	it("extracts text from assistant content arrays", () => {
+		const messages = [
+			{
+				role: "assistant",
+				content: [
+					{ type: "text", text: "Hello" },
+					{ type: "thinking", thinking: "..." },
+				],
+			},
+		] as AgentMessage[];
+		const out = normalizeAgentMessages(messages);
+		expect(out).toHaveLength(1);
+		expect(out[0]?.content).toBe("Hello ...");
+		expect(out[0]?.role).toBe("assistant");
+	});
+
+	it("extracts tool calls from assistant content arrays", () => {
+		const messages = [
+			{
+				role: "assistant",
+				content: [
+					{ type: "text", text: "I'll help" },
+					{
+						type: "toolCall",
+						id: "tc-1",
+						name: "readFile",
+						arguments: { path: "src/index.ts" },
+					},
+				],
+			},
+		] as AgentMessage[];
+		const out = normalizeAgentMessages(messages);
+		expect(out).toHaveLength(1);
+		expect(out[0]?.toolCalls).toHaveLength(1);
+		expect(out[0]?.toolCalls?.[0]?.name).toBe("readFile");
+	});
+
 	it("normalizes tool_call and tool_result AgentMessages", () => {
 		const messages: AgentMessage[] = [
 			{
@@ -40,6 +77,90 @@ describe("session-normalizer", () => {
 		const out = normalizeSessionEntries(entries);
 		expect(out).toHaveLength(2);
 		expect(out[0]?.role).toBe("user");
+	});
+
+	it("normalizes PI session JSONL nested message entries", () => {
+		const entries: SessionEntry[] = [
+			{
+				id: "1",
+				type: "message",
+				message: { role: "user", content: "hello" },
+			},
+			{
+				id: "2",
+				type: "message",
+				message: { role: "assistant", content: [{ type: "text", text: "hi!" }] },
+			},
+		];
+		const out = normalizeSessionEntries(entries);
+		expect(out).toHaveLength(2);
+		expect(out[0]?.role).toBe("user");
+		expect(out[0]?.content).toBe("hello");
+		expect(out[1]?.role).toBe("assistant");
+		expect(out[1]?.content).toBe("hi!");
+	});
+
+	it("extracts text from content arrays (text + thinking blocks)", () => {
+		const entries: SessionEntry[] = [
+			{
+				id: "1",
+				type: "message",
+				message: {
+					role: "assistant",
+					content: [
+						{ type: "text", text: "Let me think" },
+						{ type: "thinking", thinking: "processing..." },
+						{ type: "text", text: "Done!" },
+					],
+				},
+			},
+		];
+		const out = normalizeSessionEntries(entries);
+		expect(out).toHaveLength(1);
+		expect(out[0]?.content).toBe("Let me think processing... Done!");
+	});
+
+	it("extracts tool calls from content arrays", () => {
+		const entries: SessionEntry[] = [
+			{
+				id: "1",
+				type: "message",
+				message: {
+					role: "assistant",
+					content: [
+						{ type: "text", text: "I'll read the file" },
+						{
+							type: "toolCall",
+							id: "tc-1",
+							name: "readFile",
+							arguments: { path: "src/index.ts" },
+						},
+					],
+				},
+			},
+		];
+		const out = normalizeSessionEntries(entries);
+		expect(out).toHaveLength(1);
+		expect(out[0]?.toolCalls).toHaveLength(1);
+		expect(out[0]?.toolCalls?.[0]?.name).toBe("readFile");
+	});
+
+	it("normalizes toolResult entries from session JSONL", () => {
+		const entries: SessionEntry[] = [
+			{
+				id: "1",
+				type: "message",
+				message: {
+					role: "toolResult",
+					toolCallId: "tc-1",
+					content: [{ type: "text", text: "file contents" }],
+				} as AgentMessage,
+			},
+		];
+		const out = normalizeSessionEntries(entries);
+		expect(out).toHaveLength(1);
+		expect(out[0]?.role).toBe("tool_result");
+		expect(out[0]?.toolResults).toEqual([{ id: "tc-1", content: "file contents" }]);
 	});
 
 	it("filters out system messages", () => {

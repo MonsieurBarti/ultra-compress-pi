@@ -72,7 +72,10 @@ export interface SessionEntry {
 	id: string;
 	type: string;
 	content?: unknown;
+	// PI session JSONL entries wrap AgentMessage under entry.message
+	message?: AgentMessage;
 	// Loose shape — session JSONL entries vary
+	[key: string]: unknown;
 }
 
 export interface TranscriptMessage {
