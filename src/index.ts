@@ -35,6 +35,7 @@ interface PiRegisteredCommand {
 interface PiCommandContext {
 	ui?: { notify?: (message: string, level?: string) => void };
 	cwd?: string;
+	sessionManager?: { getSessionFile(): string | undefined };
 }
 
 export interface PiExtensionApi {
@@ -56,6 +57,7 @@ function wrapCommand(def: CommandDefinition): PiRegisteredCommand {
 						piCtx.ui?.notify?.(message, level);
 					},
 				},
+				...(piCtx.sessionManager ? { sessionManager: piCtx.sessionManager } : {}),
 			};
 			await def.handler(args, ctx);
 		},

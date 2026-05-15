@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.4](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.3...ultra-compress-pi-v0.1.4) (2026-05-15)
+
+
+### Features
+
+* add session compaction subsystem (pi-vcc inspired) ([465f2e6](https://github.com/MonsieurBarti/ultra-compress-pi/commit/465f2e685407c07e96dd4c1c96d5d825bec24ea8))
+* **session-compact:** add /uc-compact manual compaction command ([e3b1d1a](https://github.com/MonsieurBarti/ultra-compress-pi/commit/e3b1d1aa6c8a1d3f32cc9fefff44449b873740fe))
+* **session-compact:** add algorithmic compaction engine with 5 semantic sections ([0fafa2d](https://github.com/MonsieurBarti/ultra-compress-pi/commit/0fafa2d1642a6a880c2abdcc7da706de929eca2f))
+* **session-compact:** add bounded merge for sticky/volatile sections ([5f905a9](https://github.com/MonsieurBarti/ultra-compress-pi/commit/5f905a9c8f1fcd2d026db5ee54f8228b1d0ea8b2))
+* **session-compact:** add session compaction config store with atomic writes ([a2048f0](https://github.com/MonsieurBarti/ultra-compress-pi/commit/a2048f056e62f089c511326e9ddd719870f6da8b))
+* **session-compact:** add session jsonl reader with fallback resolution ([7a8b760](https://github.com/MonsieurBarti/ultra-compress-pi/commit/7a8b760ca45cf2ecaf7ead3b5c79db98f5402a53))
+* **session-compact:** add session_before_compact hook adapter ([7b00872](https://github.com/MonsieurBarti/ultra-compress-pi/commit/7b008722ac2da710c5fb86086efec9fd6c094043))
+* **session-compact:** auto-scaffold session config on session_start ([081d6b5](https://github.com/MonsieurBarti/ultra-compress-pi/commit/081d6b52a5478876d231d54a6337f7c1d080eba3))
+* **session-compact:** export session compaction types from barrel ([59bd718](https://github.com/MonsieurBarti/ultra-compress-pi/commit/59bd7180c36e47f93e1c7c866212e0b27e29eca4))
+
+
+### Bug Fixes
+
+* **session-compact:** add inlined pi sdk hook types and missing test ([952de2f](https://github.com/MonsieurBarti/ultra-compress-pi/commit/952de2f35b0e764800650a291ed788df82e7bd55))
+* **session-compact:** add streaming readline for large session jsonl files ([2f9d7ce](https://github.com/MonsieurBarti/ultra-compress-pi/commit/2f9d7ce6d2504c0d7825cb2352fe5ca76f5c6661))
+* **uc-recall:** resolve typescript strict mode type errors ([cd73ac5](https://github.com/MonsieurBarti/ultra-compress-pi/commit/cd73ac5bea3d95c6be87c31ea2c10baba170d3a3))
+
 ## [0.1.3](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.2...ultra-compress-pi-v0.1.3) (2026-04-12)
 
 

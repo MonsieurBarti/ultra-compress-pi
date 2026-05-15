@@ -9,9 +9,10 @@ export function createUcCompactCommand(): CommandDefinition {
 		description:
 			"Manually trigger algorithmic session compaction and display the structured summary.",
 		async handler(_args, ctx) {
-			const path = resolveSessionJsonlPath({ projectRoot: ctx.cwd });
+			const path =
+				ctx.sessionManager?.getSessionFile() ?? resolveSessionJsonlPath({ projectRoot: ctx.cwd });
 			if (!path) {
-				ctx.ui.notify("ultra-compact: no session JSONL found at .pi/session.jsonl", "warning");
+				ctx.ui.notify("ultra-compact: no session JSONL found", "warning");
 				return;
 			}
 			const entries = await readSessionEntries(path);

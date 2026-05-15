@@ -31,7 +31,8 @@ export function createUcRecallCommand(): CommandDefinition {
 		description:
 			"Search session history with regex or ranked multi-word queries. Usage: /uc-recall <query> [page:N] [expand:1,2,3]",
 		async handler(args, ctx) {
-			const path = resolveSessionJsonlPath({ projectRoot: ctx.cwd });
+			const path =
+				ctx.sessionManager?.getSessionFile() ?? resolveSessionJsonlPath({ projectRoot: ctx.cwd });
 			if (!path) {
 				ctx.ui.notify("ultra-compact: no session JSONL found", "warning");
 				return;

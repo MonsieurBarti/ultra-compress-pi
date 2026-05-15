@@ -6,9 +6,14 @@ export interface CommandUI {
 	notify(message: string, level?: "info" | "warning" | "error"): void;
 }
 
+export interface SessionManagerLike {
+	getSessionFile(): string | undefined;
+}
+
 export interface CommandContext {
 	cwd: string;
 	ui: CommandUI;
+	sessionManager?: SessionManagerLike;
 }
 
 export interface CommandDefinition {
