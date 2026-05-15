@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.4...ultra-compress-pi-v0.1.5) (2026-05-15)
+
+
+### Bug Fixes
+
+* use ctx.sessionManager.getSessionFile() instead of hardcoded .pi/session.jsonl ([5a6f4a5](https://github.com/MonsieurBarti/ultra-compress-pi/commit/5a6f4a5aa5f6b13290881eebefbe828dc0cee75b))
+
 ## [0.1.4](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.3...ultra-compress-pi-v0.1.4) (2026-05-15)
 
 
