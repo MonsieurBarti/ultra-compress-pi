@@ -14,3 +14,8 @@ export type {
 } from "./before-agent-start.js";
 export { createAgentEndHook } from "./agent-end.js";
 export type { AgentEndEvent, AgentEndContext, AgentEndHook } from "./agent-end.js";
+export { createSessionBeforeCompactHook } from "./session-before-compact.js";
+export type {
+	SessionBeforeCompactHook,
+	SessionBeforeCompactDeps,
+} from "./session-before-compact.js";
