@@ -4,8 +4,22 @@ import type {
 	TranscriptMessage,
 } from "../types/session-compact.js";
 
+const MAX_FILES = 20;
+const MAX_COMMITS = 10;
+const MAX_CONTEXT_ITEMS = 10;
+const MAX_PREFERENCES = 10;
+const MAX_TOOL_ARGS_PREVIEW = 80;
+const MAX_TOOL_RESULT_PREVIEW = 100;
+const MAX_MESSAGE_PREVIEW = 200;
+const MAX_GOAL_LENGTH = 120;
+
 export interface ExtractOptions {
 	enhanceGoal?: EnhanceGoalFn | undefined;
+}
+
+function truncate(text: string, limit: number): string {
+	const cleaned = text.replace(/\n/g, " ");
+	return cleaned.length > limit ? `${cleaned.slice(0, limit)}...` : cleaned;
 }
 
 function extractGoal(messages: TranscriptMessage[]): string {
@@ -13,7 +27,9 @@ function extractGoal(messages: TranscriptMessage[]): string {
 	if (firstUser) {
 		const text = firstUser.content.trim();
 		const sentence = text.split(/[.!?]/, 1)[0] ?? "";
-		return sentence.length > 120 ? `${sentence.slice(0, 120)}...` : sentence;
+		return sentence.length > MAX_GOAL_LENGTH
+			? `${sentence.slice(0, MAX_GOAL_LENGTH)}...`
+			: sentence;
 	}
 	return "No active goal";
 }
@@ -30,13 +46,12 @@ function extractFilesAndChanges(messages: TranscriptMessage[]): string[] {
 				}
 			}
 		}
-		// Regex fallback for inline file paths
 		const matches = msg.content.matchAll(
 			/(?:src\/|tests\/|docs\/|package\.json|tsconfig\.json)[\w/.-]+/g,
 		);
 		for (const match of matches) files.add(match[0] ?? "");
 	}
-	return Array.from(files).slice(0, 20);
+	return Array.from(files).slice(0, MAX_FILES);
 }
 
 function extractCommits(messages: TranscriptMessage[]): string[] {
@@ -48,7 +63,7 @@ function extractCommits(messages: TranscriptMessage[]): string[] {
 			if (text) commits.push(text);
 		}
 	}
-	return commits.slice(0, 10);
+	return commits.slice(0, MAX_COMMITS);
 }
 
 function extractOutstandingContext(messages: TranscriptMessage[]): string[] {
@@ -64,7 +79,7 @@ function extractOutstandingContext(messages: TranscriptMessage[]): string[] {
 			if (todo) items.push(todo);
 		}
 	}
-	return items.slice(0, 10);
+	return items.slice(0, MAX_CONTEXT_ITEMS);
 }
 
 function extractUserPreferences(messages: TranscriptMessage[]): string[] {
@@ -89,7 +104,7 @@ function extractUserPreferences(messages: TranscriptMessage[]): string[] {
 			}
 		}
 	}
-	return prefs.slice(0, 10);
+	return prefs.slice(0, MAX_PREFERENCES);
 }
 
 function buildTranscript(messages: TranscriptMessage[]): string[] {
@@ -99,20 +114,18 @@ function buildTranscript(messages: TranscriptMessage[]): string[] {
 		if (msg.toolCalls && msg.toolCalls.length > 0) {
 			for (const tc of msg.toolCalls) {
 				const args = Object.entries(tc.arguments ?? {})
-					.map(([k, v]) => `${k}=${JSON.stringify(v).slice(0, 80)}`)
+					.map(([k, v]) => `${k}=${truncate(JSON.stringify(v), MAX_TOOL_ARGS_PREVIEW)}`)
 					.join(" ");
 				lines.push(`${idx}. tool_call: ${tc.name}(${args}) (#${tc.id})`);
 				idx++;
 			}
 		} else if (msg.toolResults && msg.toolResults.length > 0) {
 			for (const tr of msg.toolResults) {
-				const preview = tr.content.slice(0, 100).replace(/\n/g, " ");
-				lines.push(`${idx}. tool_result: ${preview}${tr.content.length > 100 ? "..." : ""}`);
+				lines.push(`${idx}. tool_result: ${truncate(tr.content, MAX_TOOL_RESULT_PREVIEW)}`);
 				idx++;
 			}
 		} else {
-			const preview = msg.content.slice(0, 200).replace(/\n/g, " ");
-			lines.push(`${idx}. ${msg.role}: ${preview}${msg.content.length > 200 ? "..." : ""}`);
+			lines.push(`${idx}. ${msg.role}: ${truncate(msg.content, MAX_MESSAGE_PREVIEW)}`);
 			idx++;
 		}
 	}
@@ -142,6 +155,16 @@ export async function extractSections(
 	};
 }
 
+function renderSection(lines: string[], header: string, items: string[]): void {
+	lines.push(header);
+	if (items.length > 0) {
+		for (const item of items) lines.push(`- ${item}`);
+	} else {
+		lines.push("None");
+	}
+	lines.push("");
+}
+
 export function formatSummary(sections: SemanticSections): string {
 	const lines: string[] = [];
 
@@ -149,37 +172,10 @@ export function formatSummary(sections: SemanticSections): string {
 	lines.push(sections.goal || "No active goal");
 	lines.push("");
 
-	lines.push("[Files & Changes]");
-	if (sections.filesAndChanges.length > 0) {
-		for (const f of sections.filesAndChanges) lines.push(`- ${f}`);
-	} else {
-		lines.push("None");
-	}
-	lines.push("");
-
-	lines.push("[Commits]");
-	if (sections.commits.length > 0) {
-		for (const c of sections.commits) lines.push(`- ${c}`);
-	} else {
-		lines.push("None");
-	}
-	lines.push("");
-
-	lines.push("[Outstanding Context]");
-	if (sections.outstandingContext.length > 0) {
-		for (const o of sections.outstandingContext) lines.push(`- ${o}`);
-	} else {
-		lines.push("None");
-	}
-	lines.push("");
-
-	lines.push("[User Preferences]");
-	if (sections.userPreferences.length > 0) {
-		for (const p of sections.userPreferences) lines.push(`- ${p}`);
-	} else {
-		lines.push("None");
-	}
-	lines.push("");
+	renderSection(lines, "[Files & Changes]", sections.filesAndChanges);
+	renderSection(lines, "[Commits]", sections.commits);
+	renderSection(lines, "[Outstanding Context]", sections.outstandingContext);
+	renderSection(lines, "[User Preferences]", sections.userPreferences);
 
 	lines.push("--- Transcript ---");
 	if (sections.transcript.length > 0) {

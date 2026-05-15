@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-	expandEntry,
 	paginateResults,
 	rankResults,
 	searchSessionEntries,
@@ -47,10 +46,10 @@ describe("recall-engine", () => {
 		expect(paged.page).toBe(1);
 	});
 
-	it("expandEntry returns full untruncated entry", () => {
-		const entry = makeEntries()[0]!;
-		const expanded = expandEntry(entry);
-		expect(expanded).toEqual(entry);
+	it("recall match includes full entry", () => {
+		const entries = makeEntries();
+		const matches = searchSessionEntries(entries, "auth");
+		expect(matches[0]?.entry).toEqual(entries[0]);
 	});
 
 	it("returns empty results for no-match query", () => {

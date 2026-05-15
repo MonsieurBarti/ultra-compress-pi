@@ -1,5 +1,8 @@
 import type { SemanticSections } from "../types/session-compact.js";
 
+const MAX_PREFERENCES = 10;
+const MAX_TRANSCRIPT_LINES = 50;
+
 type SectionKey =
 	| "goal"
 	| "filesAndChanges"
@@ -69,8 +72,6 @@ export function parsePreviousSummary(summary: string): SemanticSections {
 			if (!trimmed || trimmed === "None") continue;
 			if (trimmed.startsWith("- ")) {
 				items.push(trimmed.slice(2));
-			} else if (trimmed.startsWith("1. ") || trimmed.startsWith("2. ") || /\d+\. /.test(trimmed)) {
-				items.push(trimmed);
 			} else {
 				items.push(trimmed);
 			}
@@ -85,25 +86,20 @@ export function mergeWithPrevious(
 	previous: SemanticSections,
 	current: SemanticSections,
 ): SemanticSections {
-	// Sticky sections: accumulate with deduplication
-	const mergedPrefs = [...previous.userPreferences];
-	for (const p of current.userPreferences) {
-		if (!mergedPrefs.includes(p)) mergedPrefs.push(p);
-	}
+	const mergedPrefs = Array.from(
+		new Set([...previous.userPreferences, ...current.userPreferences]),
+	);
 
-	// Goal: overwrite with current (latest intent wins)
 	const mergedGoal = current.goal || previous.goal || "No active goal";
 
-	// Transcript: roll forward (append current to previous)
 	const mergedTranscript = [...previous.transcript, ...current.transcript];
 
-	// Volatile sections: replace entirely with current
 	return {
 		goal: mergedGoal,
 		filesAndChanges: current.filesAndChanges,
 		commits: current.commits,
 		outstandingContext: current.outstandingContext,
-		userPreferences: mergedPrefs.slice(0, 10),
-		transcript: mergedTranscript.slice(-50), // Keep last 50 lines bounded
+		userPreferences: mergedPrefs.slice(0, MAX_PREFERENCES),
+		transcript: mergedTranscript.slice(-MAX_TRANSCRIPT_LINES),
 	};
 }

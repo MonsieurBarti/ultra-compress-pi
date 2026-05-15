@@ -70,7 +70,3 @@ export function paginateResults(matches: RecallMatch[], page: number, pageSize =
 		pageSize,
 	};
 }
-
-export function expandEntry(entry: SessionEntry): SessionEntry {
-	return entry;
-}
