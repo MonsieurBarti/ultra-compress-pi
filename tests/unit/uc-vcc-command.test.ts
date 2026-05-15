@@ -11,7 +11,7 @@ describe("uc-vcc command", () => {
 	it("notifies when no session file found", async () => {
 		const cmd = createUcVccCommand();
 		const notify = vi.fn();
-		await cmd.handler("", { cwd: "/tmp/nonexistent", ui: { notify }, sessionManager: undefined });
+		await cmd.handler("", { cwd: "/tmp/nonexistent", ui: { notify } });
 		expect(notify).toHaveBeenCalledWith(expect.stringContaining("no session JSONL"), "warning");
 	});
 });
