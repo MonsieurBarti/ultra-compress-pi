@@ -1,4 +1,12 @@
-import type { SemanticSections, TranscriptMessage } from "../types/session-compact.js";
+import type {
+	EnhanceGoalFn,
+	SemanticSections,
+	TranscriptMessage,
+} from "../types/session-compact.js";
+
+export interface ExtractOptions {
+	enhanceGoal?: EnhanceGoalFn | undefined;
+}
 
 function extractGoal(messages: TranscriptMessage[]): string {
 	const firstUser = messages.find((m) => m.role === "user");
@@ -111,9 +119,21 @@ function buildTranscript(messages: TranscriptMessage[]): string[] {
 	return lines;
 }
 
-export function extractSections(messages: TranscriptMessage[]): SemanticSections {
+export async function extractSections(
+	messages: TranscriptMessage[],
+	options: ExtractOptions = {},
+): Promise<SemanticSections> {
+	let goal = extractGoal(messages);
+	if (options.enhanceGoal && messages.length > 0) {
+		try {
+			const enhanced = await options.enhanceGoal(messages);
+			if (enhanced.trim()) goal = enhanced;
+		} catch {
+			// Fallback to algorithmic goal on any failure
+		}
+	}
 	return {
-		goal: extractGoal(messages),
+		goal,
 		filesAndChanges: extractFilesAndChanges(messages),
 		commits: extractCommits(messages),
 		outstandingContext: extractOutstandingContext(messages),
@@ -171,7 +191,10 @@ export function formatSummary(sections: SemanticSections): string {
 	return lines.join("\n");
 }
 
-export function compactSession(messages: TranscriptMessage[]): string {
-	const sections = extractSections(messages);
+export async function compactSession(
+	messages: TranscriptMessage[],
+	options: ExtractOptions = {},
+): Promise<string> {
+	const sections = await extractSections(messages, options);
 	return formatSummary(sections);
 }

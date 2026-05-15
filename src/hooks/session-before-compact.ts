@@ -3,6 +3,7 @@ import { extractSections, formatSummary } from "../services/compaction-engine.js
 import { normalizeAgentMessages } from "../services/session-normalizer.js";
 import type {
 	CompactionPreparation,
+	EnhanceGoalFn,
 	SessionBeforeCompactResult,
 	SessionCompactConfig,
 } from "../types/session-compact.js";
@@ -14,6 +15,7 @@ export type SessionBeforeCompactHook = (
 export interface SessionBeforeCompactDeps {
 	loadConfig: (projectRoot?: string) => Promise<SessionCompactConfig>;
 	projectRoot?: string;
+	enhanceGoal?: EnhanceGoalFn;
 }
 
 export function createSessionBeforeCompactHook(
@@ -28,7 +30,9 @@ export function createSessionBeforeCompactHook(
 		}
 
 		const messages = normalizeAgentMessages(preparation.messagesToSummarize);
-		const currentSections = extractSections(messages);
+		const currentSections = await extractSections(messages, {
+			enhanceGoal: config.useLLMForGoal ? deps.enhanceGoal : undefined,
+		});
 
 		let summarySections = currentSections;
 		if (preparation.previousSummary) {

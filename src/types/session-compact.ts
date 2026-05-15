@@ -82,6 +82,8 @@ export interface TranscriptMessage {
 	toolResults?: Array<{ id: string; content: string }>;
 }
 
+export type EnhanceGoalFn = (messages: TranscriptMessage[]) => Promise<string>;
+
 export interface SemanticSections {
 	goal: string;
 	filesAndChanges: string[];

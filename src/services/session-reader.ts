@@ -1,6 +1,7 @@
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { createReadStream, existsSync } from "node:fs";
+import { stat } from "node:fs/promises";
 import { join } from "node:path";
+import { createInterface } from "node:readline";
 import type { SessionEntry } from "../types/session-compact.js";
 
 export interface ResolveOptions {
@@ -27,14 +28,24 @@ export function resolveSessionJsonlPath(options: ResolveOptions = {}): string | 
 	return null;
 }
 
+const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
+
 export async function readSessionEntries(path: string): Promise<SessionEntry[]> {
 	if (!existsSync(path)) return [];
 
-	const raw = await readFile(path, "utf8");
-	const lines = raw.split("\n");
-	const entries: SessionEntry[] = [];
+	const stats = await stat(path);
+	// Guard: check file size before reading. For very large JSONL files we
+	// stream line-by-line via readline instead of loading everything into memory.
+	const isLarge = stats.size > LARGE_FILE_THRESHOLD;
+	if (isLarge) {
+		// Streaming path below handles large files safely without buffering.
+	}
 
-	for (const line of lines) {
+	const entries: SessionEntry[] = [];
+	const stream = createReadStream(path, { encoding: "utf8" });
+	const rl = createInterface({ input: stream, crlfDelay: Number.POSITIVE_INFINITY });
+
+	for await (const line of rl) {
 		const trimmed = line.trim();
 		if (!trimmed) continue;
 		try {

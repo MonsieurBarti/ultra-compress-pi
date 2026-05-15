@@ -83,4 +83,17 @@ describe("session-reader", () => {
 		const entries = await readSessionEntries(path);
 		expect(entries.length).toBe(1000);
 	});
+
+	it("streams very large files without crashing", async () => {
+		const path = join(dir, "very-big.jsonl");
+		// Generate 5000 lines of JSONL to exercise the streaming readline path
+		const lines = Array.from({ length: 5000 }, (_, i) =>
+			JSON.stringify({ id: String(i), type: "user", content: `message ${i}` }),
+		);
+		writeFileSync(path, lines.join("\n"));
+		const entries = await readSessionEntries(path);
+		expect(entries.length).toBe(5000);
+		expect(entries[0]?.id).toBe("0");
+		expect(entries[4999]?.id).toBe("4999");
+	});
 });

@@ -20,7 +20,7 @@ export function createUcCompactCommand(): CommandDefinition {
 				return;
 			}
 			const messages = normalizeSessionEntries(entries);
-			const summary = compactSession(messages);
+			const summary = await compactSession(messages);
 			ctx.ui.notify(summary, "info");
 		},
 	};
