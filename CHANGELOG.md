@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.1.7](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.6...ultra-compress-pi-v0.1.7) (2026-05-15)
+
+
+### Features
+
+* add bm25-lite search engine with parity tests ([55f4045](https://github.com/MonsieurBarti/ultra-compress-pi/commit/55f404590059663d8249eccf854b401151250dc5))
+* port pi-vcc deterministic zero-llm compaction pipeline ([8ae9b1f](https://github.com/MonsieurBarti/ultra-compress-pi/commit/8ae9b1fe2e2da05f6e51952e9ca93abf108a2945))
+* **vcc:** add buildowncut with turn-boundary detection and orphan recovery ([6bb7a44](https://github.com/MonsieurBarti/ultra-compress-pi/commit/6bb7a44a99af21ba8064937422b05aea3ee21fe1))
+* **vcc:** add compactsessionvcc orchestration engine with token reduction estimator ([cd88fb8](https://github.com/MonsieurBarti/ultra-compress-pi/commit/cd88fb83cd7c6cf80f2b0640fa06180da5692019))
+* **vcc:** add extract module barrel export ([6563cf6](https://github.com/MonsieurBarti/ultra-compress-pi/commit/6563cf6c249c8f81754e5908686230b67ce67fbd))
+* **vcc:** add extractfileactivity with read-modified-created categorization and prefix trimming ([53a2ad3](https://github.com/MonsieurBarti/ultra-compress-pi/commit/53a2ad3837c4b76e686d690b4416ce01c23feffe))
+* **vcc:** add extractgoal with task verbs, scope-change detection, and template truncation ([93c2125](https://github.com/MonsieurBarti/ultra-compress-pi/commit/93c2125f5203737b9cb7f5f87f2e5ca645bc26d7))
+* **vcc:** add filternoise service with thinking removal, xml stripping, and noise tool filtering ([e5dac42](https://github.com/MonsieurBarti/ultra-compress-pi/commit/e5dac42ddad1d04962cc123b3ee9a0042746c940))
+* **vcc:** add formatvccsummary and capbrief with backward-compatible wire format ([84a362d](https://github.com/MonsieurBarti/ultra-compress-pi/commit/84a362d35ffe90611796b1a008f2404b37fc62ec))
+* **vcc:** add mergewithpreviousvcc with sticky-volatile semantics and recall notes ([1b6c8db](https://github.com/MonsieurBarti/ultra-compress-pi/commit/1b6c8db5b3767c0766da14f04f09610226723bcc))
+* **vcc:** add parseprevioussummaryvcc for vcc wire format ([4580db1](https://github.com/MonsieurBarti/ultra-compress-pi/commit/4580db1d4b947d0d179bc34e43c9c7bfa99d3ec4))
+* **vcc:** add usevccpipeline config flag with defensive default ([05e0d3f](https://github.com/MonsieurBarti/ultra-compress-pi/commit/05e0d3fe19184a59a839c72e7dea763f8a96a5c2))
+* **vcc:** add vcc session fixture factory for deterministic multi-turn tests ([cc44d62](https://github.com/MonsieurBarti/ultra-compress-pi/commit/cc44d62f9da7f3bd224372b58d54bf8718727dc9))
+* **vcc:** add vcc-recall bm25 search command ([fbd0fcf](https://github.com/MonsieurBarti/ultra-compress-pi/commit/fbd0fcfde0a3b2991234e082494067619520abbf))
+* **vcc:** extend semanticsections with optional vcc fields ([bf8b368](https://github.com/MonsieurBarti/ultra-compress-pi/commit/bf8b368c171688b5698d055c47b95192893f962c))
+* **vcc:** register uc-vcc and vcc-recall commands ([c093d4e](https://github.com/MonsieurBarti/ultra-compress-pi/commit/c093d4eefd606e76298c9db00e0bafc10997413d))
+* **vcc:** wire vcc pipeline into session_before_compact hook ([2536cd5](https://github.com/MonsieurBarti/ultra-compress-pi/commit/2536cd5775128c7fe162ff6679107cc9b6966731))
+
+
+### Bug Fixes
+
+* **vcc:** address all 24 ultrareview findings ([4ab97d8](https://github.com/MonsieurBarti/ultra-compress-pi/commit/4ab97d8d4a0fbdadd234ecc7a6384bb1cea9b39f))
+* **vcc:** remove explicit undefined sessionmanager in uc-vcc test ([18274ef](https://github.com/MonsieurBarti/ultra-compress-pi/commit/18274ef13fb057046164cddbf220edd99283a22a))
+
 ## [0.1.6](https://github.com/MonsieurBarti/ultra-compress-pi/compare/ultra-compress-pi-v0.1.5...ultra-compress-pi-v0.1.6) (2026-05-15)
 
 
