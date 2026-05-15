@@ -14,4 +14,16 @@ describe("uc-vcc command", () => {
 		await cmd.handler("", { cwd: "/tmp/nonexistent", ui: { notify } });
 		expect(notify).toHaveBeenCalledWith(expect.stringContaining("no session JSONL"), "warning");
 	});
+
+	it("uses sessionManager.getSessionFile() when available", async () => {
+		const cmd = createUcVccCommand();
+		const notify = vi.fn();
+		await cmd.handler("", {
+			cwd: "/tmp/nonexistent",
+			ui: { notify },
+			sessionManager: { getSessionFile: () => "/tmp/nonexistent/session.jsonl" },
+		});
+		// Session file path resolved but file doesn't exist → readSessionEntries returns []
+		expect(notify).toHaveBeenCalledWith(expect.stringContaining("session is empty"), "info");
+	});
 });

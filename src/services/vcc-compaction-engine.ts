@@ -1,5 +1,10 @@
 import type { TranscriptMessage } from "../types/session-compact.js";
 import { type BuildOwnCutOptions, buildOwnCut } from "./build-own-cut.js";
+import {
+	extractCommits,
+	extractOutstandingContext,
+	extractUserPreferences,
+} from "./compaction-engine.js";
 import { type BuildBriefOptions, buildBrief } from "./extract/brief.js";
 import { extractFileActivity } from "./extract/files.js";
 import { extractGoal } from "./extract/goals.js";
@@ -13,59 +18,6 @@ export interface CompactSessionVccOptions {
 	buildBrief?: BuildBriefOptions;
 	capBriefMaxLines?: number;
 	fileOps?: { operations?: unknown[] };
-}
-
-function extractCommits(messages: TranscriptMessage[]): string[] {
-	const commits: string[] = [];
-	for (const msg of messages) {
-		const matches = msg.content.matchAll(/(?:commit|git commit|committed?)[\s:-]+(.+)/gi);
-		for (const match of matches) {
-			const text = match[1]?.trim();
-			if (text) commits.push(text);
-		}
-	}
-	return commits.slice(0, 10);
-}
-
-function extractOutstandingContext(messages: TranscriptMessage[]): string[] {
-	const items: string[] = [];
-	for (const msg of messages) {
-		if (msg.role === "user" && /\?(?:\s|$)/.test(msg.content)) {
-			const q = msg.content.trim();
-			if (q.length < 200) items.push(q);
-		}
-		const todos = msg.content.matchAll(/(?:TODO|FIXME|HACK|BUG)(?:[:\s]+)(.+)/gi);
-		for (const match of todos) {
-			const todo = match[1]?.trim();
-			if (todo) items.push(todo);
-		}
-	}
-	return items.slice(0, 10);
-}
-
-function extractUserPreferences(messages: TranscriptMessage[]): string[] {
-	const prefs: string[] = [];
-	for (const msg of messages) {
-		if (msg.role !== "user") continue;
-		const sentences = msg.content.split(/[.!?]+/);
-		for (const sentence of sentences) {
-			const lower = sentence.toLowerCase();
-			if (
-				lower.includes("use ") ||
-				lower.includes("prefer ") ||
-				lower.includes("enable ") ||
-				lower.includes("disable ") ||
-				lower.includes("don't ") ||
-				lower.includes("do not ") ||
-				lower.includes("keep ") ||
-				lower.includes("separate ")
-			) {
-				const trimmed = sentence.trim();
-				if (trimmed.length > 5 && trimmed.length < 200) prefs.push(trimmed);
-			}
-		}
-	}
-	return prefs.slice(0, 10);
 }
 
 export function extractVccSections(
@@ -129,8 +81,11 @@ export function estimateTokenReduction(
 		return text.split(/[^a-z0-9]+/i).filter((w) => w.length > 0).length;
 	}
 
-	const rawText = messages.map((m) => m.content).join(" ");
-	const rawWords = countWords(rawText);
+	// Count words iteratively to avoid allocating a giant intermediate string
+	let rawWords = 0;
+	for (const msg of messages) {
+		rawWords += countWords(msg.content);
+	}
 	const summaryWords = countWords(summary);
 	const reductionPercent =
 		rawWords > 0 ? Math.max(0, Math.round(((rawWords - summaryWords) / rawWords) * 100)) : 0;

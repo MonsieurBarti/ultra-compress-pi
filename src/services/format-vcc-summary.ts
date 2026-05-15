@@ -12,15 +12,21 @@ export interface VccSemanticSections {
 }
 
 export function capBrief(briefLines: BriefLine[], maxLines = 120): BriefLine[] {
+	if (maxLines <= 0) return [];
 	if (briefLines.length <= maxLines) return briefLines;
 	// Keep tail (most recent lines), drop from head
 	return briefLines.slice(-maxLines);
 }
 
+function sanitizeLine(text: string): string {
+	// Replace newlines with spaces to prevent fake section header injection
+	return text.replace(/\n+/g, " ");
+}
+
 function renderSection(lines: string[], header: string, items: string[]): void {
 	lines.push(header);
 	if (items.length > 0) {
-		for (const item of items) lines.push(`- ${item}`);
+		for (const item of items) lines.push(`- ${sanitizeLine(item)}`);
 	} else {
 		lines.push("None");
 	}
@@ -44,13 +50,13 @@ export function formatVccSummary(sections: VccSemanticSections): string {
 		lines.push("None");
 	} else {
 		if (sections.files.read.length > 0) {
-			lines.push(`read: ${sections.files.read.join(", ")}`);
+			lines.push(`read: ${sections.files.read.join("; ")}`);
 		}
 		if (sections.files.modified.length > 0) {
-			lines.push(`modified: ${sections.files.modified.join(", ")}`);
+			lines.push(`modified: ${sections.files.modified.join("; ")}`);
 		}
 		if (sections.files.created.length > 0) {
-			lines.push(`created: ${sections.files.created.join(", ")}`);
+			lines.push(`created: ${sections.files.created.join("; ")}`);
 		}
 	}
 	lines.push("");
@@ -62,10 +68,15 @@ export function formatVccSummary(sections: VccSemanticSections): string {
 	lines.push("[VCC Brief]");
 	if (sections.brief.length > 0) {
 		for (const line of sections.brief) {
-			lines.push(line.content);
+			lines.push(sanitizeLine(line.content));
 		}
 	} else {
 		lines.push("No entries");
+	}
+	lines.push("");
+
+	if (sections.recallNotes && sections.recallNotes.length > 0) {
+		renderSection(lines, "[RECALL_NOTE]", sections.recallNotes);
 	}
 
 	return lines.join("\n");

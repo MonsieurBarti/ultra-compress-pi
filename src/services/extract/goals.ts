@@ -110,6 +110,7 @@ export function extractGoal(
 ): string {
 	const maxLength = opts.maxLength ?? 120;
 	const goals: string[] = [];
+	const seen = new Set<string>();
 
 	for (const msg of messages) {
 		if (msg.role !== "user") continue;
@@ -120,14 +121,19 @@ export function extractGoal(
 		const scopeChange = detectScopeChange(text);
 		if (scopeChange) {
 			const cleaned = truncateTemplate(text, maxLength);
-			goals.push(`[Scope change] ${cleaned}`);
+			const scoped = `[Scope change] ${cleaned}`;
+			if (!seen.has(scoped)) {
+				seen.add(scoped);
+				goals.push(scoped);
+			}
 			continue;
 		}
 
 		const verb = detectTaskVerb(text);
 		if (verb) {
 			const cleaned = truncateTemplate(text, maxLength);
-			if (!goals.includes(cleaned)) {
+			if (!seen.has(cleaned)) {
+				seen.add(cleaned);
 				goals.push(cleaned);
 			}
 		}

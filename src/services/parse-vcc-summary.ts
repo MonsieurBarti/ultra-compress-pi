@@ -1,5 +1,24 @@
 import type { VccSemanticSections } from "./format-vcc-summary.js";
 
+type VccSectionKey =
+	| "goal"
+	| "files"
+	| "commits"
+	| "outstandingContext"
+	| "userPreferences"
+	| "brief"
+	| "recallNotes";
+
+const HEADER_TO_KEY: Record<string, VccSectionKey> = {
+	"[Goal]": "goal",
+	"[Files & Changes]": "files",
+	"[Commits]": "commits",
+	"[Outstanding Context]": "outstandingContext",
+	"[User Preferences]": "userPreferences",
+	"[VCC Brief]": "brief",
+	"[RECALL_NOTE]": "recallNotes",
+};
+
 export function parsePreviousSummaryVcc(summary: string): VccSemanticSections {
 	const result: VccSemanticSections = {
 		goal: "",
@@ -14,16 +33,8 @@ export function parsePreviousSummaryVcc(summary: string): VccSemanticSections {
 	if (!summary.trim()) return result;
 
 	const lines = summary.split("\n");
-	let currentSection: string | null = null;
-	const buffers: {
-		goal: string[];
-		files: string[];
-		commits: string[];
-		outstandingContext: string[];
-		userPreferences: string[];
-		brief: string[];
-		recallNotes: string[];
-	} = {
+	let currentSection: VccSectionKey | null = null;
+	const buffers: Record<VccSectionKey, string[]> = {
 		goal: [],
 		files: [],
 		commits: [],
@@ -35,36 +46,13 @@ export function parsePreviousSummaryVcc(summary: string): VccSemanticSections {
 
 	for (const raw of lines) {
 		const line = raw.trimEnd();
-		if (line === "[Goal]") {
-			currentSection = "goal";
+		const key = HEADER_TO_KEY[line];
+		if (key) {
+			currentSection = key;
 			continue;
 		}
-		if (line === "[Files & Changes]") {
-			currentSection = "files";
-			continue;
-		}
-		if (line === "[Commits]") {
-			currentSection = "commits";
-			continue;
-		}
-		if (line === "[Outstanding Context]") {
-			currentSection = "outstandingContext";
-			continue;
-		}
-		if (line === "[User Preferences]") {
-			currentSection = "userPreferences";
-			continue;
-		}
-		if (line === "[VCC Brief]") {
-			currentSection = "brief";
-			continue;
-		}
-		if (line === "[RECALL_NOTE]") {
-			currentSection = "recallNotes";
-			continue;
-		}
-		if (currentSection && currentSection in buffers) {
-			buffers[currentSection as keyof typeof buffers].push(line);
+		if (currentSection) {
+			buffers[currentSection].push(line);
 		}
 	}
 
@@ -76,11 +64,11 @@ export function parsePreviousSummaryVcc(summary: string): VccSemanticSections {
 		const trimmed = line.trim();
 		if (!trimmed || trimmed === "None") continue;
 		if (trimmed.startsWith("read: ")) {
-			result.files.read.push(...trimmed.slice(6).split(", ").filter(Boolean));
+			result.files.read.push(...trimmed.slice(6).split("; ").filter(Boolean));
 		} else if (trimmed.startsWith("modified: ")) {
-			result.files.modified.push(...trimmed.slice(10).split(", ").filter(Boolean));
+			result.files.modified.push(...trimmed.slice(10).split("; ").filter(Boolean));
 		} else if (trimmed.startsWith("created: ")) {
-			result.files.created.push(...trimmed.slice(9).split(", ").filter(Boolean));
+			result.files.created.push(...trimmed.slice(9).split("; ").filter(Boolean));
 		} else if (trimmed.startsWith("- ")) {
 			// Fallback: old-style bullet list → treat as read
 			result.files.read.push(trimmed.slice(2));

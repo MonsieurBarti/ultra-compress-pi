@@ -124,14 +124,19 @@ const DEFAULT_STOPWORDS = new Set([
 	"whom",
 ]);
 
+let _cachedSegmenter: Intl.Segmenter | null | undefined;
+
 function getSegmenter(): Intl.Segmenter | null {
+	if (_cachedSegmenter !== undefined) return _cachedSegmenter;
 	try {
 		if (typeof Intl !== "undefined" && Intl.Segmenter) {
-			return new Intl.Segmenter("en", { granularity: "word" });
+			_cachedSegmenter = new Intl.Segmenter("en", { granularity: "word" });
+			return _cachedSegmenter;
 		}
 	} catch {
 		// Fallback below
 	}
+	_cachedSegmenter = null;
 	return null;
 }
 
@@ -240,8 +245,8 @@ export function buildBrief(
 		if (msg.toolCalls && msg.toolCalls.length > 0) {
 			for (const tc of msg.toolCalls) {
 				if (toolCallCount >= maxToolLines) {
-					// Keep tail: if we're over limit, drop earliest and append new
-					const firstToolIdx = lines.findIndex((l) => l.role === "tool");
+					// Keep tail: drop earliest tool line within this turn
+					const firstToolIdx = lines.findIndex((l) => l.role === "tool" && l.turn === turn);
 					if (firstToolIdx >= 0) lines.splice(firstToolIdx, 1);
 				}
 				toolCallCount++;

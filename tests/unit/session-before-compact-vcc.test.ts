@@ -75,4 +75,20 @@ describe("session_before_compact vcc branch", () => {
 		// Previous user preference is merged (sticky field)
 		expect(result?.compaction?.summary).toContain("prefer dark mode");
 	});
+
+	it("handles vcc branch without previousSummary", async () => {
+		const hook = createSessionBeforeCompactHook({
+			loadConfig: async () => ({
+				overrideDefaultCompaction: true,
+				useLLMForGoal: false,
+				useVccPipeline: true,
+				updatedAt: new Date().toISOString(),
+			}),
+		});
+		const messagesToSummarize = [{ role: "user", content: "Build the login feature" }];
+		const result = await hook(makePreparation({ messagesToSummarize, previousSummary: undefined }));
+		expect(result).toBeDefined();
+		expect(result?.compaction?.summary).toContain("Build the login feature");
+		expect(result?.compaction?.details).toMatchObject({ vcc: true });
+	});
 });

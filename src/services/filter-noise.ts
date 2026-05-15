@@ -9,7 +9,8 @@ export interface FilterNoiseOptions {
 const DEFAULT_NOISE_TOOLS = ["readFile", "searchFiles", "grep"];
 
 function stripXmlTags(text: string): string {
-	return text.replace(/<\/?[^>]+(>|$)/g, "");
+	// Only strip properly formed XML/HTML tags (alphanumeric tag name after <)
+	return text.replace(/<\/?[a-zA-Z][^>]*>/g, "");
 }
 
 function isNoiseTool(toolCall: { name: string }, toolNames?: string[]): boolean {

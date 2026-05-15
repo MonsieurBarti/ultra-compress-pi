@@ -27,11 +27,10 @@ interface Turn {
 	isComplete: boolean;
 }
 
-function extractId(_msg: TranscriptMessage, index: number): string {
-	// TranscriptMessage doesn't have an id field directly, but if it came from
-	// a normalized SessionEntry, we can match by index or content hash.
-	// For our purposes, we use the index as a stable identifier.
-	return String(index);
+function extractId(msg: TranscriptMessage, index: number): string {
+	// If the message carries a real entry id (from normalization), use it.
+	// Otherwise fall back to the index for backward compatibility.
+	return ((msg as unknown as Record<string, unknown>).id as string) ?? String(index);
 }
 
 function findTurns(messages: TranscriptMessage[]): Turn[] {

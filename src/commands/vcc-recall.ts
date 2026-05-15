@@ -1,34 +1,13 @@
 import { paginateResults, rankResults, searchSessionEntries } from "../services/recall-engine.js";
 import { readSessionEntries, resolveSessionJsonlPath } from "../services/session-reader.js";
+import { computeRecentLines, parseRecallArgs } from "./recall-shared.js";
 import type { CommandDefinition } from "./types.js";
-
-function parseRecallArgs(args: string): { query: string; page: number; expand?: number[] } {
-	const trimmed = args.trim();
-	if (!trimmed) return { query: "", page: 1 };
-
-	const expandMatch = trimmed.match(/expand:(\d+(?:,\d+)*)/);
-	const expand = expandMatch?.[1]
-		? expandMatch[1]
-				.split(",")
-				.map((n) => Number.parseInt(n.trim(), 10))
-				.filter((n) => !Number.isNaN(n))
-		: undefined;
-
-	const pageMatch = trimmed.match(/page:(\d+)/);
-	const page = pageMatch?.[1] ? Number.parseInt(pageMatch[1], 10) : 1;
-
-	const query = trimmed
-		.replace(/expand:\d+(?:,\d+)*/g, "")
-		.replace(/page:\d+/g, "")
-		.trim();
-
-	return { query, page: Number.isNaN(page) || page < 1 ? 1 : page, ...(expand ? { expand } : {}) };
-}
 
 export function createVccRecallCommand(): CommandDefinition {
 	return {
 		name: "vcc-recall",
-		description: "BM25-powered session recall. Usage: /vcc-recall <query> [page:N] [expand:1,2,3]",
+		description:
+			"Search session history with ranked multi-word queries. Usage: /vcc-recall <query> [page:N] [expand:1,2,3]",
 		async handler(args, ctx) {
 			const path =
 				ctx.sessionManager?.getSessionFile() ?? resolveSessionJsonlPath({ projectRoot: ctx.cwd });
@@ -44,9 +23,10 @@ export function createVccRecallCommand(): CommandDefinition {
 
 			const { query, page, expand } = parseRecallArgs(args);
 			if (!query) {
-				const recent = entries.slice(-25);
+				const { offset, count } = computeRecentLines(entries.length);
+				const recent = entries.slice(-count);
 				const lines = recent.map(
-					(e, i) => `${entries.length - 25 + i + 1}. ${e.type}: ${String(e.content).slice(0, 100)}`,
+					(e, i) => `${offset + i + 1}. ${e.type}: ${String(e.content).slice(0, 100)}`,
 				);
 				ctx.ui.notify(["Recent session entries:", ...lines].join("\n"), "info");
 				return;

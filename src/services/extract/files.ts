@@ -65,13 +65,12 @@ function extractPathsFromToolCall(args: Record<string, unknown>): string[] {
 
 function trimCommonPrefix(paths: string[]): string[] {
 	if (paths.length <= 1) return paths;
-	const sorted = [...paths].sort();
-	const first = sorted[0];
-	const last = sorted[sorted.length - 1];
+	const first = paths[0];
+	const last = paths[paths.length - 1];
 	if (!first || !last) return paths;
 
 	let i = 0;
-	while (i < first.length && first[i] === last[i]) i++;
+	while (i < first.length && i < last.length && first[i] === last[i]) i++;
 	const prefix = first.slice(0, i);
 	const lastSlash = prefix.lastIndexOf("/");
 	if (lastSlash > 0) {

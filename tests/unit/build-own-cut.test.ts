@@ -52,8 +52,9 @@ describe("buildOwnCut", () => {
 			// No tool result — incomplete turn
 		];
 		const result = buildOwnCut(messages);
-		// The last turn is incomplete, so it must stay in messagesToSummarize
-		expect(result.messagesToSummarize.length).toBeGreaterThanOrEqual(2);
+		// Turn 0 complete (2 msgs) orphaned; turn 1 incomplete (2 msgs) summarized
+		expect(result.messagesToSummarize).toHaveLength(2);
+		expect(result.orphans).toHaveLength(2);
 		expect(result.messagesToSummarize.some((m) => m.content.includes("Turn 2"))).toBe(true);
 	});
 
@@ -71,7 +72,9 @@ describe("buildOwnCut", () => {
 			makeToolResultWithId("# OAuth2 Setup Guide", "tc-2"),
 		];
 		const result = buildOwnCut(messages);
-		expect(result.messagesToSummarize.length).toBeGreaterThan(0);
+		// Turn 0 complete (3 msgs) orphaned; turn 1 complete (3 msgs) summarized
+		expect(result.messagesToSummarize).toHaveLength(3);
+		expect(result.orphans).toHaveLength(3);
 		expect(validateNoDanglingToolCalls(result.messagesToSummarize)).toBe(true);
 	});
 
@@ -91,6 +94,8 @@ describe("buildOwnCut", () => {
 			makeToolResultWithId("edited b.ts", "tc-2"),
 		];
 		const result = buildOwnCut(messages);
+		expect(result.messagesToSummarize).toHaveLength(3);
+		expect(result.orphans).toHaveLength(5);
 		expect(validateNoDanglingToolCalls(result.messagesToSummarize)).toBe(true);
 	});
 
@@ -128,7 +133,8 @@ describe("buildOwnCut", () => {
 		];
 		const result = buildOwnCut(messages, { firstKeptEntryId: "" });
 		// Empty string is invalid — should fall back to heuristic
-		expect(result.messagesToSummarize.length).toBeGreaterThan(0);
+		expect(result.messagesToSummarize).toHaveLength(2);
+		expect(result.orphans).toHaveLength(2);
 	});
 
 	it("respects minOrphanTurns option", () => {
@@ -142,7 +148,8 @@ describe("buildOwnCut", () => {
 		];
 		const result = buildOwnCut(messages, { minOrphanTurns: 2 });
 		// Should orphan at least 2 complete turns
-		expect(result.orphans.length).toBeGreaterThanOrEqual(4);
+		expect(result.orphans).toHaveLength(4);
+		expect(result.messagesToSummarize).toHaveLength(2);
 	});
 
 	it("preserves turn chains: user → assistant → toolCalls → toolResults", () => {
@@ -159,9 +166,26 @@ describe("buildOwnCut", () => {
 		];
 		const result = buildOwnCut(messages);
 		expect(validateNoDanglingToolCalls(result.messagesToSummarize)).toBe(true);
-		// The tool call + result chain should stay together
-		const summarizeIds = result.messagesToSummarize.map((_, i) => i);
-		expect(summarizeIds.length).toBeGreaterThan(0);
+		// First turn complete (4 msgs) is orphaned; second turn (2 msgs) summarized
+		expect(result.orphans).toHaveLength(4);
+		expect(result.messagesToSummarize).toHaveLength(2);
+	});
+
+	it("recovers when firstKeptEntryId points inside an incomplete turn", () => {
+		const messages = [
+			makeUserMessage("Turn 1"),
+			makeAssistantMessage("Response 1"),
+			makeUserMessage("Turn 2"),
+			makeAssistantMessage("Processing...", [
+				{ id: "tc-1", name: "readFile", arguments: { path: "src/main.ts" } },
+			]),
+			// No tool result — incomplete turn
+		];
+		// Point firstKeptEntryId at message index 3 (inside incomplete turn)
+		const result = buildOwnCut(messages, { firstKeptEntryId: "3" });
+		// Turn 0 (2 msgs) orphaned; turn 1 incomplete (2 msgs) summarized
+		expect(result.orphans).toHaveLength(2);
+		expect(result.messagesToSummarize).toHaveLength(2);
 	});
 });
 
@@ -199,8 +223,8 @@ describe("buildOwnCut with CompactionPreparation", () => {
 			makeAssistantMessage("Response 2"),
 		];
 		const result = buildOwnCut(messages);
-		// The first message in messagesToSummarize should be a valid cut point
-		expect(result.messagesToSummarize.length).toBeGreaterThan(0);
+		expect(result.messagesToSummarize).toHaveLength(2);
+		expect(result.orphans).toHaveLength(2);
 		expect(result.orphans.length + result.messagesToSummarize.length).toBe(messages.length);
 	});
 
@@ -214,6 +238,8 @@ describe("buildOwnCut with CompactionPreparation", () => {
 		];
 		const result = buildOwnCut(messages);
 		// Split turn should stay in messagesToSummarize, not orphaned
+		expect(result.messagesToSummarize).toHaveLength(2);
+		expect(result.orphans).toHaveLength(0);
 		expect(result.messagesToSummarize.some((m) => m.content.includes("Working"))).toBe(true);
 		expect(result.messagesToSummarize.some((m) => m.toolCalls && m.toolCalls.length > 0)).toBe(
 			true,
@@ -230,6 +256,8 @@ describe("buildOwnCut with CompactionPreparation", () => {
 		// Empty string simulates "compact-all" sentinel
 		const result = buildOwnCut(messages, { firstKeptEntryId: "" });
 		// Should fall back to heuristic and still produce valid output
+		expect(result.messagesToSummarize).toHaveLength(2);
+		expect(result.orphans).toHaveLength(2);
 		expect(result.orphans.length + result.messagesToSummarize.length).toBe(messages.length);
 	});
 });

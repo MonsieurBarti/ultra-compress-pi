@@ -11,11 +11,21 @@ function isRegexPattern(query: string): boolean {
 	return /[.*+?^${}()|[\]\\]/.test(query);
 }
 
+function isSafeRegex(query: string): boolean {
+	// Reject patterns with nested quantifiers that can cause catastrophic backtracking
+	// e.g., (a+)+, (a*)*, (a+)*, etc.
+	if (/\([^)]*\+\)\+|\([^)]*\*\)\*|\([^)]*\+\)\*|\([^)]*\*\)\+/.test(query)) return false;
+	return true;
+}
+
 function matchesQuery(entry: SessionEntry, query: string): { matched: boolean; terms: string[] } {
 	const text = JSON.stringify(entry).toLowerCase();
 	const terms = tokenize(query);
 
 	if (isRegexPattern(query)) {
+		if (!isSafeRegex(query)) {
+			return { matched: false, terms: [] };
+		}
 		try {
 			const re = new RegExp(query, "i");
 			const matched = re.test(text);

@@ -14,10 +14,11 @@ function mergeFileActivity(
 ): VccSemanticSections["files"] {
 	// Sticky modified files (if a file was modified before, it stays modified)
 	const modified = dedupStrings([...previous.modified, ...current.modified]);
+	const modifiedSet = new Set(modified);
 	// Read files: current wins, but modified files drop from read
-	const read = dedupStrings(current.read.filter((f) => !modified.includes(f)));
+	const read = dedupStrings(current.read.filter((f) => !modifiedSet.has(f)));
 	// Created files: current wins, but modified files drop from created
-	const created = dedupStrings(current.created.filter((f) => !modified.includes(f)));
+	const created = dedupStrings(current.created.filter((f) => !modifiedSet.has(f)));
 	return { read, modified, created };
 }
 

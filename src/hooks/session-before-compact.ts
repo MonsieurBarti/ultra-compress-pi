@@ -35,7 +35,10 @@ export function createSessionBeforeCompactHook(
 		// VCC branch
 		if (config.useVccPipeline) {
 			const messages = normalizeAgentMessages(preparation.messagesToSummarize);
-			const currentSections = extractVccSections(messages);
+			const currentSections = extractVccSections(messages, {
+				fileOps: preparation.fileOps,
+				buildOwnCut: { firstKeptEntryId: preparation.firstKeptEntryId },
+			});
 
 			let summarySections = currentSections;
 			if (preparation.previousSummary) {

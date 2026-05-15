@@ -102,6 +102,14 @@ describe("extractVccSections", () => {
 		expect(sections.goal).toBe("No active goal");
 		expect(sections.brief).toEqual([]);
 	});
+
+	it("passes fileOps through to extractFileActivity", () => {
+		const messages = [{ role: "user" as const, content: "Hello" }];
+		const sections = extractVccSections(messages, {
+			fileOps: { operations: [{ path: "manual.ts", type: "edit" }] },
+		});
+		expect(sections.files.modified).toContain("manual.ts");
+	});
 });
 
 describe("estimateTokenReduction", () => {

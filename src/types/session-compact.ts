@@ -95,10 +95,6 @@ export interface SemanticSections {
 	outstandingContext: string[];
 	userPreferences: string[];
 	transcript: string[];
-	// VCC optional extensions
-	vccFiles?: { read: string[]; modified: string[]; created: string[] };
-	vccBrief?: string[];
-	recallNotes?: string[];
 }
 
 export interface RecallMatch {
